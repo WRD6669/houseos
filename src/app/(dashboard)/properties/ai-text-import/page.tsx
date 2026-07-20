@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,8 +9,30 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
-import { parsePropertyText, type ParsedProperty } from "@/lib/ai/property-parser";
-import { ArrowLeft, Check, Loader2, Sparkles, Wand2, X } from "lucide-react";
+import { parseRoomLayout } from "@/lib/ai/room-parser";
+import { ArrowLeft, Check, Loader2, Sparkles, Wand2 } from "lucide-react";
+
+interface PropertyFields {
+  name: string;
+  address: string;
+  type: string;
+  rent: number | null;
+  area: number | null;
+  rooms: string;
+  listing_type: string;
+  rent_price: number | null;
+  sale_price: number | null;
+  community: string;
+  decoration: string;
+  orientation: string;
+  floor: number | null;
+  total_floors: number | null;
+  has_elevator: boolean | null;
+  furniture: string;
+  owner_name: string;
+  owner_phone: string;
+  notes: string;
+}
 
 type Step = "input" | "parsing" | "preview" | "saving" | "done";
 
@@ -18,29 +40,38 @@ export default function AiTextImportPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("input");
   const [rawText, setRawText] = useState("");
-  const [parsed, setParsed] = useState<ParsedProperty | null>(null);
+  const [parsed, setParsed] = useState<PropertyFields | null>(null);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  function handleParse() {
+  async function handleParse() {
     if (!rawText.trim()) { setError("请先粘贴房源信息"); return; }
     setError(null);
     setStep("parsing");
 
-    // Simulate brief processing delay
-    setTimeout(() => {
-      try {
-        const result = parsePropertyText(rawText);
-        setParsed(result);
-        setEdits({});
-        setStep("preview");
-      } catch {
-        setError("解析失败，请检查文字格式后重试");
+    try {
+      const res = await fetch("/api/ai/property-parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: rawText }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "AI 解析失败，请重试");
         setStep("input");
+        return;
       }
-    }, 600);
+
+      setParsed(data);
+      setEdits({});
+      setStep("preview");
+    } catch {
+      setError("网络请求失败，请检查网络连接");
+      setStep("input");
+    }
   }
 
   async function handleSave() {
@@ -53,20 +84,41 @@ export default function AiTextImportPage() {
 
     if (!name.trim()) { setError("请输入房源名称"); setStep("preview"); return; }
 
+    // Parse rooms field 鈥?AI may return Chinese like "涓夊涓ゅ巺"
+    const roomsRaw = edits["rooms"] ?? parsed.rooms ?? null;
+    const roomResult = parseRoomLayout(roomsRaw);
+    const bedrooms = roomResult.bedrooms;
+    const livingRooms = roomResult.livingRooms;
+    const bathrooms = roomResult.bathrooms;
+    const roomLayout = roomsRaw || null;
+
     const supabase = createClient();
-    const { error: insertError } = await supabase.from("properties").insert({
+    const { error: insertError, data } = await supabase.from("properties").insert({
       name: name.trim(),
       address: address.trim(),
       area: (edits["area"] ? parseFloat(edits["area"]) : parsed.area) ?? null,
-      rooms: (edits["rooms"] ? edits["rooms"] : parsed.rooms) ?? null,
-      rent: (edits["rent"] ? parseFloat(edits["rent"]) : parsed.rent) ?? 0,
+      listing_type: edits["listing_type"] || parsed.listing_type || "rent",
+      rent_price: (edits["rent_price"] ? parseFloat(edits["rent_price"]) : parsed.rent_price) ?? null,
+      sale_price: (edits["sale_price"] ? parseFloat(edits["sale_price"]) : parsed.sale_price) ?? null,
+      bedrooms: bedrooms,
+      living_rooms: livingRooms,
+      bathrooms: bathrooms,
+      room_layout: roomLayout,
+      rent: (edits["rent_price"] ? parseFloat(edits["rent_price"]) : parsed.rent_price) ?? 0,
       owner_name: (edits["owner_name"] ?? parsed.owner_name)?.trim() || null,
       owner_phone: (edits["owner_phone"] ?? parsed.owner_phone)?.trim() || null,
       notes: (edits["notes"] ?? parsed.notes)?.trim() || null,
       status: "vacant",
-      city: "",
-      type: "apartment",
-    });
+      city: edits["city"] || "",
+      community: edits["community"] || parsed.community || null,
+      decoration: edits["decoration"] || parsed.decoration || null,
+      orientation: edits["orientation"] || parsed.orientation || null,
+      floor: (edits["floor"] ? parseInt(edits["floor"]) : parsed.floor) ?? null,
+      total_floors: (edits["total_floors"] ? parseInt(edits["total_floors"]) : parsed.total_floors) ?? null,
+      has_elevator: edits["has_elevator"] === "true" ? true : edits["has_elevator"] === "false" ? false : null,
+      furniture: edits["furniture"] || parsed.furniture || null,
+      type: edits["type"] || parsed.type || "apartment",
+    }).select("id");
 
     if (insertError) {
       if (insertError.code === "42P01") {
@@ -74,6 +126,12 @@ export default function AiTextImportPage() {
       } else {
         setError(insertError.message);
       }
+      setStep("preview");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      setError("添加失败：未收到数据库确认");
       setStep("preview");
       return;
     }
@@ -87,24 +145,37 @@ export default function AiTextImportPage() {
     setEdits((prev) => ({ ...prev, [field]: value }));
   }
 
-  const displayValue = (field: keyof ParsedProperty): string => {
+  const getVal = (field: keyof PropertyFields): string => {
     if (edits[field] !== undefined) return edits[field];
     const v = parsed?.[field];
-    if (v === null || v === undefined) return "";
+    if (v === null || v === undefined || v === "") return "";
     return String(v);
   };
 
-  const hasValue = (field: keyof ParsedProperty): boolean => {
-    const v = displayValue(field);
+  const hasVal = (field: keyof PropertyFields): boolean => {
+    const v = getVal(field);
     return v !== "" && v !== "null" && v !== "undefined";
   };
 
-  const parsedCount = parsed ? ["name", "address", "rent", "area", "rooms", "owner_name", "owner_phone"].filter((f) => hasValue(f as keyof ParsedProperty)).length : 0;
+  const parsedCount = parsed
+    ? ["name", "address", "listing_type", "rent_price", "sale_price", "area", "rooms", "community", "decoration", "orientation", "owner_name", "owner_phone"].filter((f) => hasVal(f as keyof PropertyFields)).length
+    : 0;
 
-  const FIELDS: [keyof ParsedProperty, string, boolean, string][] = [
+  const FIELDS: [keyof PropertyFields, string, boolean, string][] = [
     ["name", "房源名称", true, "如：十四佳园"],
     ["address", "地址", false, "如：1-3-301"],
-    ["rent", "月租 (元)", false, "如：2500"],
+    ["type", "类型", false, "apartment/villa/loft..."],
+    ["listing_type", "交易", false, "rent/sale"],
+    ["rent_price", "月租 (元)", false, "如：8000"],
+    ["sale_price", "售价 (元)", false, "如：3500000"],
+    ["community", "小区", false, "小区名称"],
+    ["decoration", "装修", false, "furnished/standard/unfurnished/shell"],
+    ["orientation", "朝向", false, "如：南"],
+    ["floor", "楼层", false, "如：3"],
+    ["total_floors", "总楼层", false, "如：6"],
+    ["has_elevator", "电梯", false, "true/false"],
+    ["furniture", "家具", false, "full/partial/none"],
+    ["rent_price", "月租 (元)", false, "如：8000"],
     ["area", "面积 (㎡)", false, "如：94"],
     ["rooms", "户型", false, "如：2室1厅"],
     ["owner_name", "房东姓名", false, "如：张先生"],
@@ -123,67 +194,55 @@ export default function AiTextImportPage() {
           <Wand2 className="size-6 text-primary" />
           AI 快速录入
         </h1>
-        <p className="text-sm text-muted-foreground">粘贴房源描述文字，智能解析为结构化房源信息</p>
+        <p className="text-muted-foreground mt-1">粘贴微信房源描述，AI 自动解析字段</p>
       </div>
 
-      {toast && (
-        <div className={`flex items-center justify-between rounded-md px-3 py-2 text-sm ${toast.type === "success" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : "bg-destructive/10 text-destructive"}`}>
-          <span>{toast.message}</span>
-          <button onClick={() => setToast(null)}><X className="size-3.5" /></button>
-        </div>
-      )}
-
-      {error && (
-        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          <X className="size-4" />
-          {error}
-          <button className="ml-auto hover:underline" onClick={() => setError(null)}>关闭</button>
-        </div>
-      )}
-
-      {/* ── Step: Input ──────────────────────────────────────────── */}
+      {/* Input */}
       {step === "input" && (
         <Card>
           <CardHeader>
-            <CardTitle>粘贴房源信息</CardTitle>
-            <CardDescription>支持微信聊天记录、房产论坛帖子等多种格式</CardDescription>
+            <CardTitle>粘贴房源描述</CardTitle>
+            <CardDescription>从聊天记录复制房源信息，粘贴到下方</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
-              placeholder={"请粘贴房源信息，例如：\n十四佳园3栋301，120㎡，三室两厅，月租3500，房东张先生13800000000\n\n或：\n小区名称：十四佳园\n楼号：3-301\n户型：3-2-2\n面积：120\n租金：3500\n房东：张先生\n电话：13800000000"}
-              className="min-h-[200px]"
+              placeholder={"请粘贴房源信息，例如：十四佳园3栋301，120㎡，三室两厅，月租3500，房东张先生13800000000"}
+              className="min-h-40"
               value={rawText}
-              onChange={(e) => { setRawText(e.target.value); setError(null); }}
+              onChange={(e) => setRawText(e.target.value)}
             />
-            <div className="flex justify-end">
+            {error && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRawText("")}>清空</Button>
               <Button onClick={handleParse} disabled={!rawText.trim()}>
                 <Sparkles className="size-4" />
-                AI 智能解析
+                AI 识别
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* ── Step: Parsing ────────────────────────────────────────── */}
+      {/* Parsing */}
       {step === "parsing" && (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-16">
             <Wand2 className="size-10 animate-pulse text-primary" />
-            <p className="text-sm font-medium">AI 正在解析房源信息...</p>
+            <p className="text-sm font-medium">DeepSeek AI 正在解析房源信息...</p>
+            <p className="text-xs text-muted-foreground">调用 AI 模型识别关键字段</p>
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </CardContent>
         </Card>
       )}
 
-      {/* ── Step: Preview ────────────────────────────────────────── */}
+      {/* Preview */}
       {step === "preview" && parsed && (
         <>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="size-5 text-primary" />
-                解析结果
+                AI 解析结果
               </CardTitle>
               <CardDescription>
                 已识别 <Badge variant="secondary" className="ml-1">{parsedCount}</Badge> 个字段，请核对并修改
@@ -195,13 +254,15 @@ export default function AiTextImportPage() {
                   <div key={field} className="space-y-1.5">
                     <label className="text-sm font-medium">
                       {label}{required && <span className="text-destructive"> *</span>}
-                      {!required && !hasValue(field) && <span className="text-muted-foreground font-normal ml-1">（未识别）</span>}
+                      {!required && !hasVal(field) && (
+                        <span className="text-muted-foreground font-normal ml-1">（未识别）</span>
+                      )}
                     </label>
                     <Input
-                      value={displayValue(field)}
+                      value={getVal(field)}
                       onChange={(e) => setEdit(field, e.target.value)}
                       placeholder={placeholder}
-                      className={required && !displayValue(field) ? "border-destructive" : ""}
+                      className={required && !getVal(field) ? "border-destructive" : ""}
                     />
                   </div>
                 ))}
@@ -224,7 +285,7 @@ export default function AiTextImportPage() {
         </>
       )}
 
-      {/* ── Step: Saving ─────────────────────────────────────────── */}
+      {/* Saving */}
       {step === "saving" && (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12">
@@ -234,7 +295,7 @@ export default function AiTextImportPage() {
         </Card>
       )}
 
-      {/* ── Step: Done ───────────────────────────────────────────── */}
+      {/* Done */}
       {step === "done" && result && (
         <Card>
           <CardHeader>

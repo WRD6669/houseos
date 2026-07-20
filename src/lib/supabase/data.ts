@@ -1,6 +1,6 @@
-import { createServerClient } from "@supabase/ssr";
+﻿import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { CustomerWithPropertyCount, PropertyWithDetails, LeaseWithDetails } from "./types";
+import type { CustomerWithPropertyCount, PropertyWithDetails, LeaseWithDetails, PropertyImage } from "./types";
 
 async function getServerClient() {
   const cookieStore = await cookies();
@@ -39,8 +39,7 @@ async function fetchIdNames(table: string, ids: string[]): Promise<Record<string
   return map;
 }
 
-// ── Dashboard Stats ───────────────────────────────────────────────────
-
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Dashboard Stats 闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸?
 export interface DashboardStats {
   customerCount: number;
   propertyCount: number;
@@ -70,11 +69,11 @@ export async function fetchDashboardStats(): Promise<QueryResult<DashboardStats>
   const { count: customerCount, error: cErr } = await supabase.from("customers").select("*", { count: "exact", head: true });
   if (cErr) return { data: null, error: cErr.message };
 
-  const { data: props, error: pErr } = await supabase.from("properties").select("status, rent, name, created_at").order("created_at", { ascending: false });
+  const { data: props, error: pErr } = await supabase.from("properties").select("status, rent, rent_price, name, created_at").order("created_at", { ascending: false });
   if (pErr) return { data: null, error: pErr.code === "42P01" ? "TABLES_NOT_FOUND" : pErr.message };
 
   const propertyCount = props?.length ?? 0;
-  const occupied = props?.filter((p: { status: string }) => p.status === "rented" || p.status === "occupied").length ?? 0;
+  const occupied = props?.filter((p: { status: string }) => p.status === "occupied").length ?? 0;
   const vacant = props?.filter((p: { status: string }) => p.status === "vacant").length ?? 0;
   const occupancyRate = propertyCount > 0 ? Math.round((occupied / propertyCount) * 100) : 0;
 
@@ -102,8 +101,7 @@ export async function fetchDashboardStats(): Promise<QueryResult<DashboardStats>
   };
 }
 
-// ── Customers ─────────────────────────────────────────────────────────
-
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Customers 闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑?
 export async function fetchCustomers(): Promise<QueryResult<CustomerWithPropertyCount[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
@@ -158,15 +156,14 @@ export async function deleteCustomer(id: string): Promise<QueryResult<null>> {
   return { data: null, error: null };
 }
 
-// ── Properties ────────────────────────────────────────────────────────
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Properties 闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕
 
 export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
   const { data, error } = await supabase
     .from("properties")
-    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, owner_name, owner_phone, notes, area, rooms, created_at")
-    .order("created_at", { ascending: false });
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, living_rooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, created_at").order("created_at", { ascending: false });
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
   const { data: al } = await supabase.from("leases").select("property_id, customer_id").eq("status", "active");
   const tm: Record<string, string> = {};
@@ -175,37 +172,57 @@ export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails
   return { data: (data || []).map((p) => ({ ...p, tenant_name: nm[tm[p.id]] || null })), error: null };
 }
 
+
+export async function fetchPropertyById(id: string): Promise<QueryResult<PropertyWithDetails>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("properties")
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, living_rooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, created_at")
+    .eq("id", id)
+    .single();
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  // Attach tenant_name
+  const { data: al } = await supabase.from("leases").select("customer_id").eq("property_id", id).eq("status", "active").limit(1);
+  let tenantName: string | null = null;
+  if (al && al.length > 0) {
+    const { data: cust } = await supabase.from("customers").select("name").eq("id", al[0].customer_id).single();
+    tenantName = cust?.name ?? null;
+  }
+  return { data: { ...data, tenant_name: tenantName } as PropertyWithDetails, error: null };
+}
+
 export async function createProperty(input: {
-  name: string; address: string; area: number | null; rooms: number | null; rent: number | null;
+  name: string; address: string; area: number | null; rooms: number | null; room_layout: string | null; rent: number | null;
   owner_name: string | null; owner_phone: string | null; notes: string | null;
 }): Promise<QueryResult<PropertyWithDetails>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
   const { data, error } = await supabase.from("properties")
     .insert({
-      name: input.name, address: input.address, area: input.area, rooms: input.rooms,
-      rent: input.rent ?? 0, owner_name: input.owner_name || null, owner_phone: input.owner_phone || null,
-      notes: input.notes || null, status: "vacant", city: "", type: "apartment",
+      name: input.name, address: input.address, area: input.area, 
+    rent: input.rent ?? 0, owner_name: input.owner_name || null, owner_phone: input.owner_phone || null,
+      notes: input.notes || null, room_layout: input.room_layout || null, status: "vacant", city: "", type: "apartment",
     })
-    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, owner_name, owner_phone, notes, area, rooms, created_at").single();
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, created_at").single();
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
   return { data: { ...data, tenant_name: null } as PropertyWithDetails, error: null };
 }
 
 export async function updateProperty(id: string, input: {
-  name: string; address: string; area: number | null; rooms: number | null; rent: number | null;
+  name: string; address: string; area: number | null; rooms: number | null; room_layout: string | null; rent: number | null;
   owner_name: string | null; owner_phone: string | null; notes: string | null;
 }): Promise<QueryResult<PropertyWithDetails>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
   const { data, error } = await supabase.from("properties")
     .update({
-      name: input.name, address: input.address, area: input.area, rooms: input.rooms,
-      rent: input.rent ?? 0, owner_name: input.owner_name || null, owner_phone: input.owner_phone || null,
-      notes: input.notes || null,
+      name: input.name, address: input.address, area: input.area, 
+    rent: input.rent ?? 0, owner_name: input.owner_name || null, owner_phone: input.owner_phone || null,
+      notes: input.notes || null, room_layout: input.room_layout || null,
     })
     .eq("id", id)
-    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, owner_name, owner_phone, notes, area, rooms, created_at").single();
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, created_at").single();
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
   return { data: { ...data, tenant_name: null } as PropertyWithDetails, error: null };
 }
@@ -219,7 +236,7 @@ export async function deleteProperty(id: string): Promise<QueryResult<null>> {
   return { data: null, error: null };
 }
 
-// ── Leases ────────────────────────────────────────────────────────────
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Leases 闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕
 
 export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -247,8 +264,8 @@ export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
     property_address: addressMap[l.property_id] || "",
   }));
   return { data: result, error: null };
-}
 
+}
 export async function createLease(input: {
   customer_id: string; property_id: string; start_date: string; end_date: string;
   monthly_rent: number; deposit: number | null; payment_day: number | null; notes: string | null;
@@ -267,14 +284,13 @@ export async function createLease(input: {
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
 
   const customerNames = await fetchIdNames("customers", [data.customer_id]);
-  const propertyNames = await fetchIdNames("properties", [data.property_id]);
+
   const { data: pa } = await supabase.from("properties").select("address").eq("id", data.property_id).single();
 
   return {
     data: {
       ...data,
       customer_name: customerNames[data.customer_id] || "未知",
-      property_name: propertyNames[data.property_id] || "未知",
       property_address: pa?.address || "",
     } as LeaseWithDetails,
     error: null,
@@ -307,7 +323,6 @@ export async function updateLease(id: string, input: {
     data: {
       ...data,
       customer_name: customerNames[data.customer_id] || "未知",
-      property_name: propertyNames[data.property_id] || "未知",
       property_address: pa?.address || "",
     } as LeaseWithDetails,
     error: null,
@@ -324,7 +339,7 @@ export async function deleteLease(id: string): Promise<QueryResult<null>> {
 }
 
 export async function createPropertiesBatch(inputs: {
-  name: string; address: string; area: number | null; rooms: number | null; rent: number | null;
+  name: string; address: string; area: number | null; rooms: number | null; living_rooms: number | null; rent: number | null;
   owner_name: string | null; owner_phone: string | null; notes: string | null;
 }[]): Promise<QueryResult<{ inserted: number; errors: string[] }>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -336,6 +351,7 @@ export async function createPropertiesBatch(inputs: {
     address: input.address,
     area: input.area,
     rooms: input.rooms,
+    living_rooms: input.living_rooms,
     rent: input.rent ?? 0,
     owner_name: input.owner_name || null,
     owner_phone: input.owner_phone || null,
@@ -352,4 +368,91 @@ export async function createPropertiesBatch(inputs: {
   }
 
   return { data: { inserted: data?.length || 0, errors: [] }, error: null };
+}
+
+// ============================================================
+// Image CRUD
+// ============================================================
+
+export async function fetchPropertyImages(propertyId: string): Promise<QueryResult<(PropertyImage & { created_at: string })[]>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("property_images")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("sort_order", { ascending: true });
+  if (error) return { data: null, error: error.code === "42P01" ? "TABLES_NOT_FOUND" : error.message };
+  return { data: data as (PropertyImage & { created_at: string })[], error: null };
+}
+
+export async function createPropertyImage(input: {
+  property_id: string;
+  url: string;
+  thumbnail_url?: string | null;
+  sort_order?: number;
+  is_primary?: boolean;
+  width?: number | null;
+  height?: number | null;
+  file_size?: number | null;
+}): Promise<QueryResult<PropertyImage & { created_at: string }>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("property_images")
+    .insert({
+      property_id: input.property_id,
+      url: input.url,
+      thumbnail_url: input.thumbnail_url || null,
+      sort_order: input.sort_order ?? 0,
+      is_primary: input.is_primary ?? false,
+      width: input.width || null,
+      height: input.height || null,
+      file_size: input.file_size || null,
+    })
+    .select("*")
+    .single();
+  if (error) return { data: null, error: error.code === "42P01" ? "TABLES_NOT_FOUND" : error.message };
+  return { data: data as PropertyImage & { created_at: string }, error: null };
+}
+
+export async function updatePropertyImage(id: string, input: {
+  url?: string;
+  thumbnail_url?: string | null;
+  sort_order?: number;
+  is_primary?: boolean;
+  width?: number | null;
+  height?: number | null;
+  file_size?: number | null;
+}): Promise<QueryResult<PropertyImage & { created_at: string }>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("property_images")
+    .update(input)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) return { data: null, error: error.code === "42P01" ? "TABLES_NOT_FOUND" : error.message };
+  return { data: data as PropertyImage & { created_at: string }, error: null };
+}
+
+export async function deletePropertyImage(id: string): Promise<QueryResult<null>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { error, data } = await supabase.from("property_images").delete().eq("id", id).select("id");
+  if (error) return { data: null, error: error.code === "42P01" ? "TABLES_NOT_FOUND" : error.message };
+  if (!data?.length) return { data: null, error: "删除失败" };
+  return { data: null, error: null };
+}
+
+export async function setPrimaryImage(propertyId: string, imageId: string): Promise<QueryResult<null>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  // Unset all primary
+  await supabase.from("property_images").update({ is_primary: false }).eq("property_id", propertyId);
+  // Set the target as primary
+  const { error } = await supabase.from("property_images").update({ is_primary: true }).eq("id", imageId);
+  if (error) return { data: null, error: error.code === "42P01" ? "TABLES_NOT_FOUND" : error.message };
+  return { data: null, error: null };
 }
