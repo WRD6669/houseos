@@ -12,13 +12,13 @@ export default function NotFound() {
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">页面不存在</h1>
           <p className="text-sm text-muted-foreground">
-            The page you are looking for does not exist or has been moved.
+            您访问的页面不存在或已被移动。
           </p>
         </div>
         <Button variant="default" asChild>
           <Link href="/dashboard">
             <ArrowLeft className="size-4" />
-            Back to Dashboard
+            返回工作台
           </Link>
         </Button>
       </div>

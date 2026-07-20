@@ -49,7 +49,7 @@ export function Sidebar() {
       <Separator />
       <div className="p-3">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <div className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-medium">AD</div>
+          <div className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-medium">管</div>
           <div className="flex flex-col">
             <span className="text-sm font-medium">管理员</span>
             <span className="text-xs text-muted-foreground">admin@houseos.com</span>

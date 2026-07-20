@@ -9,7 +9,7 @@ export function ImportButton() {
     <Button variant="outline" asChild>
       <Link href="/properties/import">
         <Upload className="size-4" />
-        Import
+        批量导入
       </Link>
     </Button>
   );

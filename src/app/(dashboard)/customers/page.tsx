@@ -13,7 +13,7 @@ export default async function CustomersPage() {
     </div>
   );
 
-  // -- Supabase 未配置 ------------------------------------------
+  // -- Supabase 未配置 --------------------------------------------
   if (!isSupabaseConfigured()) {
     return (
       <div className="space-y-6">
@@ -30,9 +30,9 @@ export default async function CustomersPage() {
             <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code>{" "}
             并设置{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code>{" "}
-            and{" "}
+            和{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>{" "}
-            为你的 Supabase 项目凭据
+            为您的 Supabase 项目凭据
           </p>
         </div>
       </div>
@@ -42,7 +42,7 @@ export default async function CustomersPage() {
   // -- Fetch data -------------------------------------------------------
   const { data: customers, error } = await fetchCustomers();
 
-  // -- 数据库表不存在 ----------------------------------------
+  // -- 数据库表不存在 ------------------------------------------
   if (error === "TABLES_NOT_FOUND") {
     return (
       <div className="space-y-6">

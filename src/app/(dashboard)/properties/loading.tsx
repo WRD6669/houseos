@@ -1,6 +1,6 @@
-﻿import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function 房源管理Loading() {
+export default function PropertiesLoading() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

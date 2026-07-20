@@ -8,24 +8,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search } from "lucide-react";
 import type { PropertyWithDetails } from "@/lib/supabase/types";
 
-// Map DB status/type (lowercase) to UI display + badge variant
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  已租:    { label: "已租",    variant: "default" },
-  空置:      { label: "空置",      variant: "secondary" },
-  maintenance: { label: "Maintenance", variant: "destructive" },
+  rented:    { label: "已租",    variant: "default" },
+  vacant:      { label: "空置",      variant: "secondary" },
+  maintenance: { label: "维护中", variant: "destructive" },
+};
+
+const TYPE_MAP: Record<string, string> = {
+  apartment: "公寓",
+  house: "别墅",
+  commercial: "商铺",
 };
 
 function formatRent(rent: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("zh-CN", {
     style: "currency",
-    currency: "USD",
+    currency: "CNY",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(rent);
-}
-
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 interface Props {
@@ -41,7 +42,7 @@ export function PropertiesTable({ initialData }: Props) {
     return (
       p.name.toLowerCase().includes(q) ||
       p.address.toLowerCase().includes(q) ||
-      (p.tenant_name && p.tenant_name.toLowerCase().includes(q))
+      (p.owner_name && p.owner_name.toLowerCase().includes(q))
     );
   });
 
@@ -66,7 +67,7 @@ export function PropertiesTable({ initialData }: Props) {
         {filtered.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
             {query.trim() ? (
-              <p>No properties matching &quot;{query}&quot;.</p>
+              <p>未找到匹配 &ldquo;{query}&rdquo; 的房源。</p>
             ) : (
               <p>暂无房源。添加第一个房源开始吧。</p>
             )}
@@ -75,20 +76,20 @@ export function PropertiesTable({ initialData }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Property</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>房源</TableHead>
+                <TableHead>类型</TableHead>
                 <TableHead>状态</TableHead>
-                <TableHead>租客</TableHead>
+                <TableHead>房东</TableHead>
                 <TableHead>月租</TableHead>
-                <TableHead>City</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((property) => {
                 const status = STATUS_MAP[property.status] ?? {
-                  label: capitalize(property.status),
+                  label: property.status,
                   variant: "outline" as const,
                 };
+                const typeLabel = TYPE_MAP[property.type] ?? property.type;
                 return (
                   <TableRow key={property.id}>
                     <TableCell>
@@ -97,17 +98,14 @@ export function PropertiesTable({ initialData }: Props) {
                         <div className="text-xs text-muted-foreground">{property.address}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {capitalize(property.type)}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{typeLabel}</TableCell>
                     <TableCell>
                       <Badge variant={status.variant}>{status.label}</Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {property.tenant_name ?? "\u2014"}
+                      {property.owner_name ?? "\u2014"}
                     </TableCell>
                     <TableCell>{formatRent(property.rent)}</TableCell>
-                    <TableCell className="text-muted-foreground">{property.city}</TableCell>
                   </TableRow>
                 );
               })}

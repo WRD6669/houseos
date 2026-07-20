@@ -18,7 +18,7 @@ export default function AIPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Property values in your area have increased 8.3% this quarter. The AI recommends focusing on multi-family units.
+              您所在区域的房产价值本季度增长 8.3%，AI 建议重点关注多户住宅单元。
             </p>
           </CardContent>
         </Card>
@@ -29,7 +29,7 @@ export default function AIPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Sunset Apartments 4B could yield ,650/month based on comparable listings (+10.4% increase).
+              落日公寓 4B 预计可达 ,650/月，基于同类房源对比（+10.4% 增长空间）。
             </p>
           </CardContent>
         </Card>
@@ -40,7 +40,7 @@ export default function AIPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              3 properties are predicted to need HVAC service within 30 days. Schedule maintenance now.
+              预测 3 处房源 30 天内需要暖通空调维修，请尽快安排维护。
             </p>
           </CardContent>
         </Card>
@@ -51,7 +51,7 @@ export default function AIPage() {
             <Bot className="size-5" />
             AI 对话
           </CardTitle>
-          <CardDescription>Ask questions about your properties, customers, and market.</CardDescription>
+          <CardDescription>向 AI 询问您的房源、客户和市场相关问题</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -66,7 +66,7 @@ export default function AIPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Input placeholder="Type your message..." className="flex-1" />
+              <Input placeholder="输入您的问题..." className="flex-1" />
               <Button size="icon">
                 <Send className="size-4" />
               </Button>

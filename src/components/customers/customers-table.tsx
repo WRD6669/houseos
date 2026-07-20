@@ -9,10 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search } from "lucide-react";
 import type { CustomerWithPropertyCount } from "@/lib/supabase/types";
 
-// Map DB status (lowercase) to UI display + badge variant
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  活跃:   { label: "活跃",   variant: "default" },
-  in活跃: { label: "In活跃", variant: "outline" },
+  active:   { label: "活跃",   variant: "default" },
+  inactive: { label: "非活跃", variant: "outline" },
   pending:  { label: "待处理",  variant: "secondary" },
 };
 
@@ -67,7 +66,7 @@ export function CustomersTable({ initialData }: Props) {
         {filtered.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">
             {query.trim() ? (
-              <p>No customers matching &quot;{query}&quot;.</p>
+              <p>未找到匹配 &ldquo;{query}&rdquo; 的客户。</p>
             ) : (
               <p>暂无客户。添加第一个客户开始吧。</p>
             )}
@@ -79,7 +78,7 @@ export function CustomersTable({ initialData }: Props) {
                 <TableHead>姓名</TableHead>
                 <TableHead>状态</TableHead>
                 <TableHead>关联房源</TableHead>
-                <TableHead>Since</TableHead>
+                <TableHead>创建时间</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

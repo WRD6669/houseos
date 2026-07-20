@@ -101,7 +101,7 @@ export function AddPropertyButton() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Name <span className="text-destructive">*</span></label>
+                    <label className="text-sm font-medium">名称 <span className="text-destructive">*</span></label>
                     <Input placeholder="如：十四佳园 1-3-301" value={form.name} onChange={(e) => set("name", e.target.value)} disabled={saving} autoFocus />
                   </div>
                   <div className="space-y-2">
@@ -111,7 +111,7 @@ export function AddPropertyButton() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Address <span className="text-destructive">*</span></label>
+                  <label className="text-sm font-medium">地址 <span className="text-destructive">*</span></label>
                   <Input placeholder="详细地址" value={form.address} onChange={(e) => set("address", e.target.value)} disabled={saving} />
                 </div>
 

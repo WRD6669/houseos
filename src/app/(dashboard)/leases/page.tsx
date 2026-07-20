@@ -1,4 +1,4 @@
-﻿import { Suspense } from "react";
+import { Suspense } from "react";
 import { fetchLeases, fetchCustomers, fetchProperties, isSupabaseConfigured } from "@/lib/supabase/data";
 import { AddLeaseButton } from "@/components/leases/lease-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondar
 };
 
 function formatDate(iso: string) { return new Date(iso).toISOString().slice(0, 10); }
-function formatRent(n: number) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n); }
+function formatRent(n: number) { return new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY", minimumFractionDigits: 0 }).format(n); }
 
 function LeasesTable({ leases }: { leases: LeaseWithDetails[] }) {
   return (
@@ -87,7 +87,9 @@ export default async function LeasesPage() {
           </div>
           <h3 className="mb-1 text-lg font-medium">Supabase 未配置</h3>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">
-            请打开 <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code> 并设置 <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
+            请打开 <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code> 并设置{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> 和{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>。
           </p>
         </div>
       </div>

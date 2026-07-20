@@ -1,11 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-;
 import { extractTextFromImage } from "@/lib/ai/ocr";
 import { parsePropertyText, type ParsedProperty } from "@/lib/ai/property-parser";
 import { createClient } from "@/lib/supabase/client";
@@ -31,7 +30,6 @@ export default function AiImportPage() {
     if (fileRef.current) fileRef.current.value = "";
   }
 
-  // ── Upload & OCR ──────────────────────────────────────────────────
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -43,7 +41,6 @@ export default function AiImportPage() {
       return;
     }
 
-    // Preview
     setImageUrl(URL.createObjectURL(file));
     setStep("analyzing");
 
@@ -61,7 +58,6 @@ export default function AiImportPage() {
     }
   }
 
-  // ── Save ──────────────────────────────────────────────────────────
   async function handleSave() {
     if (!parsed) return;
     setStep("saving");
@@ -70,7 +66,7 @@ export default function AiImportPage() {
     const name = edits["name"] ?? parsed.name ?? "";
     const address = edits["address"] ?? parsed.address ?? "";
 
-    if (!name.trim()) { setError('请输入房源名称'); setStep("preview"); return; }
+    if (!name.trim()) { setError("请输入房源名称"); setStep("preview"); return; }
 
     const supabase = createClient();
     const { error: insertError } = await supabase.from("properties").insert({
@@ -112,7 +108,7 @@ export default function AiImportPage() {
 
   const backLink = (
     <Button variant="ghost" size="sm" asChild className="mb-2">
-      <Link href="/properties"><ArrowLeft className="size-4" /> Back to Properties</Link>
+      <Link href="/properties"><ArrowLeft className="size-4" /> 返回房源</Link>
     </Button>
   );
 
@@ -125,39 +121,29 @@ export default function AiImportPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <X className="size-4 shrink-0" /> {error}
+        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <X className="size-4" />
+          {error}
+          <button className="ml-auto hover:underline" onClick={() => setError(null)}>关闭</button>
         </div>
       )}
 
-      {/* ── Upload ────────────────────────────────────────────────── */}
+      {/* -- Upload -------------------------------------------------- */}
       {step === "upload" && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><ImageUp className="size-5" /> Upload Screenshot</CardTitle>
-            <CardDescription>Upload a property listing screenshot (PNG, JPG, or JPEG). AI will extract the details automatically.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center gap-4 rounded-lg border-2 border-dashed p-12">
-              <ImageUp className="size-12 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground text-center">Supported formats: PNG, JPG, JPEG<br />Best results with clear, well-lit screenshots</p>
-              <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleFile} className="block w-full max-w-xs cursor-pointer rounded-md border px-3 py-2 text-sm" />
-            </div>
+          <CardContent className="flex flex-col items-center gap-4 py-12">
+            <ImageUp className="size-12 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">上传微信房源截图（PNG、JPG）</p>
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleFile} className="block w-full max-w-xs cursor-pointer rounded-md border px-3 py-2 text-sm" />
           </CardContent>
         </Card>
       )}
 
-      {/* ── Analyzing ─────────────────────────────────────────────── */}
+      {/* -- Analyzing ---------------------------------------------- */}
       {step === "analyzing" && (
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader><CardTitle>原图</CardTitle></CardHeader>
-            <CardContent>
-              {imageUrl && <img src={imageUrl} alt="上传的截图" className="w-full rounded-lg border" />}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center gap-4 py-20">
+        <div className="flex justify-center">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex flex-col items-center gap-4 py-20">
               <ScanEye className="size-12 animate-pulse text-primary" />
               <p className="text-sm font-medium">AI 正在分析图片...</p>
               <p className="text-xs text-muted-foreground">正在识别文字并提取房源信息</p>
@@ -167,17 +153,15 @@ export default function AiImportPage() {
         </div>
       )}
 
-      {/* ── Preview ───────────────────────────────────────────────── */}
+      {/* -- Preview ------------------------------------------------ */}
       {step === "preview" && parsed && (
         <>
-          {/* OCR raw text */}
           <details className="cursor-pointer text-xs text-muted-foreground">
             <summary className="hover:text-foreground">查看识别原文</summary>
             <pre className="mt-2 rounded-md bg-muted p-3 text-xs whitespace-pre-wrap max-h-40 overflow-auto">{rawText}</pre>
           </details>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Image preview */}
             <Card>
               <CardHeader><CardTitle>原图</CardTitle></CardHeader>
               <CardContent>
@@ -185,12 +169,11 @@ export default function AiImportPage() {
               </CardContent>
             </Card>
 
-            {/* Parsed fields */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Sparkles className="size-5 text-primary" />
-                  AI Recognition Results
+                  AI 识别结果
                 </CardTitle>
                 <CardDescription>请核对并修改识别结果</CardDescription>
               </CardHeader>
@@ -226,13 +209,13 @@ export default function AiImportPage() {
             <Button variant="outline" onClick={reset}>取消</Button>
             <Button onClick={handleSave}>
               <Check className="size-4" />
-              Save Property
+              保存房源
             </Button>
           </div>
         </>
       )}
 
-      {/* ── Saving ────────────────────────────────────────────────── */}
+      {/* -- Saving ------------------------------------------------- */}
       {step === "saving" && (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12">
@@ -242,13 +225,13 @@ export default function AiImportPage() {
         </Card>
       )}
 
-      {/* ── Done ──────────────────────────────────────────────────── */}
+      {/* -- Done --------------------------------------------------- */}
       {step === "done" && result && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Check className="size-5 text-emerald-500" />
-              Property Saved
+              房源已保存
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">

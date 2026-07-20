@@ -46,10 +46,10 @@ export function AddLeaseButton({ customers, properties }: Props) {
     e.preventDefault();
     setError(null);
 
-    if (!form.customer_id) { setError("��ѡ��ͻ�"); return; }
-    if (!form.property_id) { setError("��ѡ��Դ"); return; }
-    if (!form.start_date) { setError("��ѡ��ʼ����"); return; }
-    if (!form.end_date) { setError("��ѡ���������"); return; }
+    if (!form.customer_id) { setError("请选择客户"); return; }
+    if (!form.property_id) { setError("请选择房源"); return; }
+    if (!form.start_date) { setError("请选择开始日期"); return; }
+    if (!form.end_date) { setError("请选择结束日期"); return; }
 
     setSaving(true);
     const supabase = createClient();
@@ -70,7 +70,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
 
     if (insertError) {
       if (insertError.code === "42P01") {
-        setError("���ݿ������ڣ�����ִ�� SQL Ǩ��");
+        setError("数据库表不存在，请先执行 SQL 迁移");
       } else {
         setError(insertError.message);
       }
@@ -98,7 +98,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>添加租约</CardTitle>
-                <CardDescription>�����ͻ��뷿Դ����Լ��ϵ</CardDescription>
+                <CardDescription>建立客户与房源的租约关系</CardDescription>
               </div>
               <Button variant="ghost" size="icon" onClick={() => !saving && setOpen(false)}>
                 <X className="size-4" />
@@ -107,28 +107,28 @@ export function AddLeaseButton({ customers, properties }: Props) {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Customer <span className="text-destructive">*</span></label>
+                  <label className="text-sm font-medium">客户 <span className="text-destructive">*</span></label>
                   <select className={selectClass} value={form.customer_id} onChange={(e) => set("customer_id", e.target.value)} disabled={saving}>
-                    <option value="">ѡ��ͻ�...</option>
+                    <option value="">选择客户...</option>
                     {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Property <span className="text-destructive">*</span></label>
+                  <label className="text-sm font-medium">房源 <span className="text-destructive">*</span></label>
                   <select className={selectClass} value={form.property_id} onChange={(e) => set("property_id", e.target.value)} disabled={saving}>
-                    <option value="">ѡ��Դ...</option>
+                    <option value="">选择房源...</option>
                     {properties.map((p) => <option key={p.id} value={p.id}>{p.name}{p.address ? ` - ${p.address}` : ""}</option>)}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Start Date <span className="text-destructive">*</span></label>
+                    <label className="text-sm font-medium">开始日期 <span className="text-destructive">*</span></label>
                     <Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} disabled={saving} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">End Date <span className="text-destructive">*</span></label>
+                    <label className="text-sm font-medium">结束日期 <span className="text-destructive">*</span></label>
                     <Input type="date" value={form.end_date} onChange={(e) => set("end_date", e.target.value)} disabled={saving} />
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
                     <Input type="number" placeholder="2500" value={form.monthly_rent} onChange={(e) => set("monthly_rent", e.target.value)} disabled={saving} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Ѻ��</label>
+                    <label className="text-sm font-medium">押金</label>
                     <Input type="number" placeholder="5000" value={form.deposit} onChange={(e) => set("deposit", e.target.value)} disabled={saving} />
                   </div>
                   <div className="space-y-2">
@@ -149,7 +149,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">��ע</label>
+                  <label className="text-sm font-medium">备注</label>
                   <Input placeholder="备注信息" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
                 </div>
 

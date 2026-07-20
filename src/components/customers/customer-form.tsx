@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,7 @@ export function AddCustomerButton() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  // ── OCR upload handler ────────────────────────────────────────────
+  // -- OCR upload handler ----------------------------------------------
   async function handleOcrUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -46,15 +46,14 @@ export function AddCustomerButton() {
       const text = await extractTextFromImage(file);
       const parsed = parseDocumentText(text);
 
-      // Map parsed fields to form fields
       const formNotesParts: string[] = [];
-      if (parsed.community) formNotesParts.push(`\u5c0f\u533a: ${parsed.community}`);
-      if (parsed.address) formNotesParts.push(`\u5730\u5740: ${parsed.address}`);
-      if (parsed.area) formNotesParts.push(`\u9762\u79ef: ${parsed.area}\u33a1`);
-      if (parsed.price) formNotesParts.push(`\u4ef7\u683c: ${parsed.price}`);
-      if (parsed.room) formNotesParts.push(`\u6237\u578b: ${parsed.room}`);
-      if (parsed.floor) formNotesParts.push(`\u697c\u5c42: ${parsed.floor}`);
-      if (parsed.remark) formNotesParts.push(`\u5907\u6ce8: ${parsed.remark}`);
+      if (parsed.community) formNotesParts.push(`小区: ${parsed.community}`);
+      if (parsed.address) formNotesParts.push(`地址: ${parsed.address}`);
+      if (parsed.area) formNotesParts.push(`面积: ${parsed.area}㎡`);
+      if (parsed.price) formNotesParts.push(`价格: ${parsed.price}`);
+      if (parsed.room) formNotesParts.push(`户型: ${parsed.room}`);
+      if (parsed.floor) formNotesParts.push(`楼层: ${parsed.floor}`);
+      if (parsed.remark) formNotesParts.push(`备注: ${parsed.remark}`);
 
       setForm((prev) => ({
         ...prev,
@@ -128,7 +127,7 @@ export function AddCustomerButton() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Name <span className="text-destructive">*</span></label>
+                  <label className="text-sm font-medium">姓名 <span className="text-destructive">*</span></label>
                   <Input placeholder="请输入姓名" value={form.name} onChange={(e) => set("name", e.target.value)} disabled={saving} autoFocus />
                 </div>
                 <div className="space-y-2">

@@ -31,10 +31,10 @@ export default async function PropertiesPage() {
           </div>
           <h3 className="mb-1 text-lg font-medium">Supabase 未配置</h3>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">
-            请打开 <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code> and set{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+            请打开 <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code> 并设置{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> 和{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>{" "}
-            为你的 Supabase 项目凭据
+            为您的 Supabase 项目凭据
           </p>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default async function PropertiesPage() {
           </div>
           <h3 className="mb-1 text-lg font-medium">数据库表不存在</h3>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">
-            Run the SQL migration in your Supabase SQL Editor:{" "}
+            请在 Supabase SQL 编辑器中执行迁移文件：{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">supabase/migrations/001_initial_schema.sql</code>
           </p>
         </div>
