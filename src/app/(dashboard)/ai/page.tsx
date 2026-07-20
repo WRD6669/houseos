@@ -8,13 +8,13 @@ export default function AIPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">AI Assistant</h1>
-        <p className="text-sm text-muted-foreground">Get AI-powered insights and automation.</p>
+        <p className="text-sm text-muted-foreground">获取 AI 驱动的洞察和自动化建议。</p>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Market Analysis</CardTitle>
-            <CardDescription>AI-driven property market trends.</CardDescription>
+            <CardTitle className="text-base">市场分析</CardTitle>
+            <CardDescription>AI 驱动的房源市场趋势</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
@@ -35,8 +35,8 @@ export default function AIPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Maintenance Predictor</CardTitle>
-            <CardDescription>Preventive maintenance alerts.</CardDescription>
+            <CardTitle className="text-base">维修预测</CardTitle>
+            <CardDescription>预防性维护提醒</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
@@ -49,7 +49,7 @@ export default function AIPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bot className="size-5" />
-            Chat with AI
+            AI 对话
           </CardTitle>
           <CardDescription>Ask questions about your properties, customers, and market.</CardDescription>
         </CardHeader>
@@ -61,7 +61,7 @@ export default function AIPage() {
                   <Sparkles className="size-4 text-primary" />
                 </div>
                 <div className="rounded-lg bg-muted px-3 py-2 text-sm">
-                  Hello! I am your HouseOS AI assistant. How can I help you today?
+                  你好！我是 HouseOS AI 助手，有什么可以帮您？
                 </div>
               </div>
             </div>
