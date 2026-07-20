@@ -1,59 +1,7 @@
 import { Suspense } from "react";
 import { fetchLeases, fetchCustomers, fetchProperties, isSupabaseConfigured } from "@/lib/supabase/data";
 import { AddLeaseButton } from "@/components/leases/lease-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { LeaseWithDetails } from "@/lib/supabase/types";
-
-const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  active: { label: "进行中", variant: "default" },
-  expired: { label: "已到期", variant: "secondary" },
-  terminated: { label: "已终止", variant: "destructive" },
-};
-
-function formatDate(iso: string) { return new Date(iso).toISOString().slice(0, 10); }
-function formatRent(n: number) { return new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY", minimumFractionDigits: 0 }).format(n); }
-
-function LeasesTable({ leases }: { leases: LeaseWithDetails[] }) {
-  return (
-    <Card>
-      <CardHeader className="pb-3"><CardTitle>全部租约</CardTitle></CardHeader>
-      <CardContent>
-        {leases.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">暂无租约。创建第一个租约开始吧。</div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>租客</TableHead><TableHead>房源</TableHead><TableHead>月租</TableHead>
-                <TableHead>开始日期</TableHead><TableHead>结束日期</TableHead><TableHead>状态</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leases.map((l) => {
-                const s = STATUS_MAP[l.status] ?? { label: l.status, variant: "outline" as const };
-                return (
-                  <TableRow key={l.id}>
-                    <TableCell className="font-medium">{l.customer_name}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">{l.property_name}</div>
-                      <div className="text-xs text-muted-foreground">{l.property_address}</div>
-                    </TableCell>
-                    <TableCell>{formatRent(l.monthly_rent)}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(l.start_date)}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(l.end_date)}</TableCell>
-                    <TableCell><Badge variant={s.variant}>{s.label}</Badge></TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+import { LeasesTable } from "@/components/leases/leases-table";
 
 async function LeaseButtonWrapper() {
   const { data: customers } = await fetchCustomers();

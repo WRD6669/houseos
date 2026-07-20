@@ -1,4 +1,4 @@
-﻿import { createServerClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { CustomerWithPropertyCount, PropertyWithDetails, LeaseWithDetails } from "./types";
 
@@ -65,10 +65,35 @@ export async function createCustomer(input: {
     .select("id, name, email, phone, wechat, id_card, notes, status, created_at").single();
   if (error) {
     if (error.code === "42P01" || error.message?.includes("does not exist")) return { data: null, error: "TABLES_NOT_FOUND" };
-    if (error.code === "23505") return { data: null, error: "A customer with this email already exists." };
+    if (error.code === "23505") return { data: null, error: "此邮箱已存在" };
     return { data: null, error: error.message };
   }
   return { data: { ...data, property_count: 0 } as CustomerWithPropertyCount, error: null };
+}
+
+export async function updateCustomer(id: string, input: {
+  name: string; email: string | null; phone: string | null; wechat: string | null; id_card: string | null; notes: string | null;
+}): Promise<QueryResult<CustomerWithPropertyCount>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.from("customers")
+    .update({ name: input.name, email: input.email || null, phone: input.phone || null, wechat: input.wechat || null, id_card: input.id_card || null, notes: input.notes || null })
+    .eq("id", id)
+    .select("id, name, email, phone, wechat, id_card, notes, status, created_at").single();
+  if (error) {
+    if (error.code === "42P01" || error.message?.includes("does not exist")) return { data: null, error: "TABLES_NOT_FOUND" };
+    if (error.code === "23505") return { data: null, error: "此邮箱已存在" };
+    return { data: null, error: error.message };
+  }
+  return { data: { ...data, property_count: 0 } as CustomerWithPropertyCount, error: null };
+}
+
+export async function deleteCustomer(id: string): Promise<QueryResult<null>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { error } = await supabase.from("customers").delete().eq("id", id);
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  return { data: null, error: null };
 }
 
 // ── Properties ────────────────────────────────────────────────────────
@@ -95,10 +120,40 @@ export async function createProperty(input: {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
   const { data, error } = await supabase.from("properties")
-    .insert({ name: input.name, address: input.address, area: input.area, rooms: input.rooms, rent: input.rent ?? 0, owner_name: input.owner_name || null, owner_phone: input.owner_phone || null, notes: input.notes || null, status: "vacant", city: "", type: "apartment" })
+    .insert({
+      name: input.name, address: input.address, area: input.area, rooms: input.rooms,
+      rent: input.rent ?? 0, owner_name: input.owner_name || null, owner_phone: input.owner_phone || null,
+      notes: input.notes || null, status: "vacant", city: "", type: "apartment",
+    })
     .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, owner_name, owner_phone, notes, area, rooms, created_at").single();
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
   return { data: { ...data, tenant_name: null } as PropertyWithDetails, error: null };
+}
+
+export async function updateProperty(id: string, input: {
+  name: string; address: string; area: number | null; rooms: number | null; rent: number | null;
+  owner_name: string | null; owner_phone: string | null; notes: string | null;
+}): Promise<QueryResult<PropertyWithDetails>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.from("properties")
+    .update({
+      name: input.name, address: input.address, area: input.area, rooms: input.rooms,
+      rent: input.rent ?? 0, owner_name: input.owner_name || null, owner_phone: input.owner_phone || null,
+      notes: input.notes || null,
+    })
+    .eq("id", id)
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, owner_name, owner_phone, notes, area, rooms, created_at").single();
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  return { data: { ...data, tenant_name: null } as PropertyWithDetails, error: null };
+}
+
+export async function deleteProperty(id: string): Promise<QueryResult<null>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { error } = await supabase.from("properties").delete().eq("id", id);
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  return { data: null, error: null };
 }
 
 // ── Leases ────────────────────────────────────────────────────────────
@@ -116,7 +171,6 @@ export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
   const propertyIds = [...new Set((data || []).map((l) => l.property_id))];
   const customerNames = await fetchIdNames("customers", customerIds);
   const propertyNames = await fetchIdNames("properties", propertyIds);
-  // Also fetch addresses for properties
   const addressMap: Record<string, string> = {};
   if (propertyIds.length > 0) {
     const { data: pa } = await supabase.from("properties").select("id, address").in("id", propertyIds);
@@ -125,8 +179,8 @@ export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
 
   const result: LeaseWithDetails[] = (data || []).map((l) => ({
     ...l,
-    customer_name: customerNames[l.customer_id] || "Unknown",
-    property_name: propertyNames[l.property_id] || "Unknown",
+    customer_name: customerNames[l.customer_id] || "未知",
+    property_name: propertyNames[l.property_id] || "未知",
     property_address: addressMap[l.property_id] || "",
   }));
   return { data: result, error: null };
@@ -156,12 +210,53 @@ export async function createLease(input: {
   return {
     data: {
       ...data,
-      customer_name: customerNames[data.customer_id] || "Unknown",
-      property_name: propertyNames[data.property_id] || "Unknown",
+      customer_name: customerNames[data.customer_id] || "未知",
+      property_name: propertyNames[data.property_id] || "未知",
       property_address: pa?.address || "",
     } as LeaseWithDetails,
     error: null,
   };
+}
+
+export async function updateLease(id: string, input: {
+  customer_id: string; property_id: string; start_date: string; end_date: string;
+  monthly_rent: number; deposit: number | null; payment_day: number | null; notes: string | null;
+}): Promise<QueryResult<LeaseWithDetails>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase.from("leases")
+    .update({
+      customer_id: input.customer_id, property_id: input.property_id,
+      start_date: input.start_date, end_date: input.end_date,
+      monthly_rent: input.monthly_rent, deposit: input.deposit,
+      payment_day: input.payment_day ?? 1, notes: input.notes || null,
+    })
+    .eq("id", id)
+    .select("id, customer_id, property_id, start_date, end_date, monthly_rent, deposit, payment_day, status, notes, created_at")
+    .single();
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+
+  const customerNames = await fetchIdNames("customers", [data.customer_id]);
+  const propertyNames = await fetchIdNames("properties", [data.property_id]);
+  const { data: pa } = await supabase.from("properties").select("address").eq("id", data.property_id).single();
+
+  return {
+    data: {
+      ...data,
+      customer_name: customerNames[data.customer_id] || "未知",
+      property_name: propertyNames[data.property_id] || "未知",
+      property_address: pa?.address || "",
+    } as LeaseWithDetails,
+    error: null,
+  };
+}
+
+export async function deleteLease(id: string): Promise<QueryResult<null>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { error } = await supabase.from("leases").delete().eq("id", id);
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  return { data: null, error: null };
 }
 
 export async function createPropertiesBatch(inputs: {
