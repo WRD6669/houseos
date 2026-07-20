@@ -39,7 +39,7 @@ async function fetchIdNames(table: string, ids: string[]): Promise<Record<string
   return map;
 }
 
-// ── Customers ─────────────────────────────────────────────────────────
+// 鈹€鈹€ Customers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 export async function fetchCustomers(): Promise<QueryResult<CustomerWithPropertyCount[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -65,7 +65,7 @@ export async function createCustomer(input: {
     .select("id, name, email, phone, wechat, id_card, notes, status, created_at").single();
   if (error) {
     if (error.code === "42P01" || error.message?.includes("does not exist")) return { data: null, error: "TABLES_NOT_FOUND" };
-    if (error.code === "23505") return { data: null, error: "此邮箱已存在" };
+    if (error.code === "23505") return { data: null, error: "姝ら偖绠卞凡瀛樺湪" };
     return { data: null, error: error.message };
   }
   return { data: { ...data, property_count: 0 } as CustomerWithPropertyCount, error: null };
@@ -76,13 +76,12 @@ export async function updateCustomer(id: string, input: {
 }): Promise<QueryResult<CustomerWithPropertyCount>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
-  const { data, error } = await supabase.from("customers")
-    .update({ name: input.name, email: input.email || null, phone: input.phone || null, wechat: input.wechat || null, id_card: input.id_card || null, notes: input.notes || null })
+  const { data, error } = await supabase.from("customers").update({ name: input.name, email: input.email || null, phone: input.phone || null, wechat: input.wechat || null, id_card: input.id_card || null, notes: input.notes || null })
     .eq("id", id)
     .select("id, name, email, phone, wechat, id_card, notes, status, created_at").single();
   if (error) {
     if (error.code === "42P01" || error.message?.includes("does not exist")) return { data: null, error: "TABLES_NOT_FOUND" };
-    if (error.code === "23505") return { data: null, error: "此邮箱已存在" };
+    if (error.code === "23505") return { data: null, error: "姝ら偖绠卞凡瀛樺湪" };
     return { data: null, error: error.message };
   }
   return { data: { ...data, property_count: 0 } as CustomerWithPropertyCount, error: null };
@@ -96,7 +95,7 @@ export async function deleteCustomer(id: string): Promise<QueryResult<null>> {
   return { data: null, error: null };
 }
 
-// ── Properties ────────────────────────────────────────────────────────
+// 鈹€鈹€ Properties 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -156,7 +155,7 @@ export async function deleteProperty(id: string): Promise<QueryResult<null>> {
   return { data: null, error: null };
 }
 
-// ── Leases ────────────────────────────────────────────────────────────
+// 鈹€鈹€ Leases 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -179,8 +178,8 @@ export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
 
   const result: LeaseWithDetails[] = (data || []).map((l) => ({
     ...l,
-    customer_name: customerNames[l.customer_id] || "未知",
-    property_name: propertyNames[l.property_id] || "未知",
+    customer_name: customerNames[l.customer_id] || "鏈煡",
+    property_name: propertyNames[l.property_id] || "鏈煡",
     property_address: addressMap[l.property_id] || "",
   }));
   return { data: result, error: null };
@@ -210,8 +209,8 @@ export async function createLease(input: {
   return {
     data: {
       ...data,
-      customer_name: customerNames[data.customer_id] || "未知",
-      property_name: propertyNames[data.property_id] || "未知",
+      customer_name: customerNames[data.customer_id] || "鏈煡",
+      property_name: propertyNames[data.property_id] || "鏈煡",
       property_address: pa?.address || "",
     } as LeaseWithDetails,
     error: null,
@@ -243,8 +242,8 @@ export async function updateLease(id: string, input: {
   return {
     data: {
       ...data,
-      customer_name: customerNames[data.customer_id] || "未知",
-      property_name: propertyNames[data.property_id] || "未知",
+      customer_name: customerNames[data.customer_id] || "鏈煡",
+      property_name: propertyNames[data.property_id] || "鏈煡",
       property_address: pa?.address || "",
     } as LeaseWithDetails,
     error: null,

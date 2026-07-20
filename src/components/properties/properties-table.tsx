@@ -56,10 +56,12 @@ export function PropertiesTable({ initialData }: Props) {
     if (!deleteTarget) return;
     setDeleting(true);
     const supabase = createClient();
-    const { error } = await supabase.from("properties").delete().eq("id", deleteTarget.id);
+    const { error, data } = await supabase.from("properties").delete().eq("id", deleteTarget.id).select("id");
     setDeleting(false);
     if (error) {
       setToast({ type: "error", message: "删除失败：" + error.message });
+    } else if (!data || data.length === 0) {
+      setToast({ type: "error", message: "删除失败：未能删除此记录，请检查数据库权限" });
     } else {
       setToast({ type: "success", message: "已删除房源「" + deleteTarget.name + "」" });
     }
