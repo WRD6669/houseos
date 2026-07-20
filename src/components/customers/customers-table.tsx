@@ -13,7 +13,7 @@ import type { CustomerWithPropertyCount } from "@/lib/supabase/types";
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   活跃:   { label: "活跃",   variant: "default" },
   in活跃: { label: "In活跃", variant: "outline" },
-  pending:  { label: "Pending",  variant: "secondary" },
+  pending:  { label: "待处理",  variant: "secondary" },
 };
 
 function getInitials(name: string): string {
@@ -50,7 +50,7 @@ export function CustomersTable({ initialData }: Props) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle>All Customers</CardTitle>
+          <CardTitle>全部客户</CardTitle>
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
@@ -61,7 +61,7 @@ export function CustomersTable({ initialData }: Props) {
             />
           </div>
         </div>
-        <CardDescription>A list of all customers in your database.</CardDescription>
+        <CardDescription>数据库中所有客户列表</CardDescription>
       </CardHeader>
       <CardContent>
         {filtered.length === 0 ? (
@@ -69,16 +69,16 @@ export function CustomersTable({ initialData }: Props) {
             {query.trim() ? (
               <p>No customers matching &quot;{query}&quot;.</p>
             ) : (
-              <p>No customers yet. Add your first customer to get started.</p>
+              <p>暂无客户。添加第一个客户开始吧。</p>
             )}
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Properties</TableHead>
+                <TableHead>姓名</TableHead>
+                <TableHead>状态</TableHead>
+                <TableHead>关联房源</TableHead>
                 <TableHead>Since</TableHead>
               </TableRow>
             </TableHeader>

@@ -96,7 +96,7 @@ export function AddCustomerButton() {
   return (
     <>
       <Button onClick={() => setOpen(true)}>
-        <Plus className="size-4" /> Add Customer
+        <Plus className="size-4" /> 添加客户
       </Button>
 
       <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleOcrUpload} className="hidden" />
@@ -107,7 +107,7 @@ export function AddCustomerButton() {
           <Card className="relative z-10 w-full max-w-lg shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Add Customer</CardTitle>
+                <CardTitle>添加客户</CardTitle>
                 <CardDescription>输入客户信息或上传证件图片自动识别</CardDescription>
               </div>
               <div className="flex items-center gap-1">
@@ -132,23 +132,23 @@ export function AddCustomerButton() {
                   <Input placeholder="请输入姓名" value={form.name} onChange={(e) => set("name", e.target.value)} disabled={saving} autoFocus />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
+                  <label className="text-sm font-medium">邮箱</label>
                   <Input type="email" placeholder="email@example.com" value={form.email} onChange={(e) => set("email", e.target.value)} disabled={saving} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone</label>
+                  <label className="text-sm font-medium">电话</label>
                   <Input placeholder="+86 138-0000-0000" value={form.phone} onChange={(e) => set("phone", e.target.value)} disabled={saving} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">WeChat</label>
+                  <label className="text-sm font-medium">微信</label>
                   <Input placeholder="微信号" value={form.wechat} onChange={(e) => set("wechat", e.target.value)} disabled={saving} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">ID Card</label>
+                  <label className="text-sm font-medium">身份证号</label>
                   <Input placeholder="身份证号码" value={form.id_card} onChange={(e) => set("id_card", e.target.value)} disabled={saving} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Notes</label>
+                  <label className="text-sm font-medium">备注</label>
                   <Input placeholder="备注信息" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
                 </div>
 
@@ -157,9 +157,9 @@ export function AddCustomerButton() {
                 )}
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>取消</Button>
                   <Button type="submit" disabled={saving}>
-                    {saving && <Loader2 className="size-4 animate-spin" />} Save
+                    {saving && <Loader2 className="size-4 animate-spin" />} 保存
                   </Button>
                 </div>
               </form>

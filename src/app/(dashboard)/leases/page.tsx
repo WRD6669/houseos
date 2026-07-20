@@ -18,16 +18,16 @@ function formatRent(n: number) { return new Intl.NumberFormat("en-US", { style: 
 function LeasesTable({ leases }: { leases: LeaseWithDetails[] }) {
   return (
     <Card>
-      <CardHeader className="pb-3"><CardTitle>All Leases</CardTitle></CardHeader>
+      <CardHeader className="pb-3"><CardTitle>全部租约</CardTitle></CardHeader>
       <CardContent>
         {leases.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">No leases yet. Create your first lease to get started.</div>
+          <div className="py-12 text-center text-muted-foreground">暂无租约。创建第一个租约开始吧。</div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead><TableHead>Property</TableHead><TableHead>Rent</TableHead>
-                <TableHead>Start</TableHead><TableHead>End</TableHead><TableHead>Status</TableHead>
+                <TableHead>租客</TableHead><TableHead>房源</TableHead><TableHead>月租</TableHead>
+                <TableHead>开始日期</TableHead><TableHead>结束日期</TableHead><TableHead>状态</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -87,7 +87,7 @@ export default async function LeasesPage() {
           </div>
           <h3 className="mb-1 text-lg font-medium">Supabase 未配置</h3>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">
-            Open <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code> and set <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
+            请打开 <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code> 并设置 <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
           </p>
         </div>
       </div>

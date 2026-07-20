@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "HouseOS",
-  description: "Smart property management system",
+  description: "智能房产管理系统",
 };
 
 export default function RootLayout({

@@ -1,12 +1,12 @@
 ﻿import { Skeleton } from "@/components/ui/skeleton";
 
-export default function PropertiesLoading() {
+export default function 房源管理Loading() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Properties</h1>
-          <p className="text-sm text-muted-foreground">Manage your property portfolio.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">房源管理</h1>
+          <p className="text-sm text-muted-foreground">管理您的房源</p>
         </div>
         <Skeleton className="h-9 w-32" />
       </div>

@@ -10,8 +10,8 @@ import type { PropertyWithDetails } from "@/lib/supabase/types";
 
 // Map DB status/type (lowercase) to UI display + badge variant
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  occupied:    { label: "已租",    variant: "default" },
-  vacant:      { label: "空置",      variant: "secondary" },
+  已租:    { label: "已租",    variant: "default" },
+  空置:      { label: "空置",      variant: "secondary" },
   maintenance: { label: "Maintenance", variant: "destructive" },
 };
 
@@ -49,7 +49,7 @@ export function PropertiesTable({ initialData }: Props) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle>All Properties</CardTitle>
+          <CardTitle>全部房源</CardTitle>
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
@@ -60,7 +60,7 @@ export function PropertiesTable({ initialData }: Props) {
             />
           </div>
         </div>
-        <CardDescription>A list of all properties in your portfolio.</CardDescription>
+        <CardDescription>房源列表中所有房源信息</CardDescription>
       </CardHeader>
       <CardContent>
         {filtered.length === 0 ? (
@@ -68,7 +68,7 @@ export function PropertiesTable({ initialData }: Props) {
             {query.trim() ? (
               <p>No properties matching &quot;{query}&quot;.</p>
             ) : (
-              <p>No properties yet. Add your first property to get started.</p>
+              <p>暂无房源。添加第一个房源开始吧。</p>
             )}
           </div>
         ) : (
@@ -77,9 +77,9 @@ export function PropertiesTable({ initialData }: Props) {
               <TableRow>
                 <TableHead>Property</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Rent</TableHead>
+                <TableHead>状态</TableHead>
+                <TableHead>租客</TableHead>
+                <TableHead>月租</TableHead>
                 <TableHead>City</TableHead>
               </TableRow>
             </TableHeader>

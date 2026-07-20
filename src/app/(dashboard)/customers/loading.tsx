@@ -1,12 +1,12 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CustomersLoading() {
+export default function 客户管理Loading() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
-          <p className="text-sm text-muted-foreground">Manage your customer relationships.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">客户管理</h1>
+          <p className="text-sm text-muted-foreground">管理您的客户关系</p>
         </div>
         <Skeleton className="h-9 w-32" />
       </div>

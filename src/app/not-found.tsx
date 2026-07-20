@@ -10,7 +10,7 @@ export default function NotFound() {
           <FileQuestion className="size-8 text-muted-foreground" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Page Not Found</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">页面不存在</h1>
           <p className="text-sm text-muted-foreground">
             The page you are looking for does not exist or has been moved.
           </p>

@@ -81,7 +81,7 @@ export function AddPropertyButton() {
     <>
       <Button onClick={() => setOpen(true)}>
         <Plus className="size-4" />
-        Add Property
+        添加房源
       </Button>
 
       {open && (
@@ -90,7 +90,7 @@ export function AddPropertyButton() {
           <Card className="relative z-10 w-full max-w-lg shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Add Property</CardTitle>
+                <CardTitle>添加房源</CardTitle>
                 <CardDescription>填写以下房源信息</CardDescription>
               </div>
               <Button variant="ghost" size="icon" onClick={() => !saving && setOpen(false)}>
@@ -150,7 +150,7 @@ export function AddPropertyButton() {
                   <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>取消</Button>
                   <Button type="submit" disabled={saving}>
                     {saving && <Loader2 className="size-4 animate-spin" />}
-                    Save
+                    保存
                   </Button>
                 </div>
               </form>

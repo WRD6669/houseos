@@ -5,7 +5,7 @@ const stats = [
   { label: "总收入", value: ",231", change: "+20.1%", icon: DollarSign },
   { label: "Properties", value: "24", change: "+4", icon: Building2 },
   { label: "Customers", value: "156", change: "+12", icon: Users },
-  { label: "Occupancy", value: "92%", change: "+2.4%", icon: TrendingUp },
+  { label: "入住率", value: "92%", change: "+2.4%", icon: TrendingUp },
 ];
 
 export default function DashboardPage() {
@@ -13,7 +13,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">工作台</h1>
-        <p className="text-sm text-muted-foreground">Overview of your property management.</p>
+        <p className="text-sm text-muted-foreground">房源管理概览</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
@@ -36,7 +36,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="col-span-2">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>最近动态</CardTitle>
             <CardDescription>Latest transactions and updates.</CardDescription>
           </CardHeader>
           <CardContent>

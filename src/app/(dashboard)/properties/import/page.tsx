@@ -126,7 +126,7 @@ export default function ImportPage() {
         setRows(parsed);
         setStep("preview");
       } catch {
-        setError("Failed to parse the Excel file. Make sure it is a valid .xlsx file.");
+        setError("Excel 文件解析失败，请确保是有效的 .xlsx 文件");
       }
     };
     reader.readAsBinaryString(file);
@@ -137,7 +137,7 @@ export default function ImportPage() {
     setStep("saving");
     setError(null);
     const valid = rows.filter((r) => r._errors.length === 0);
-    if (valid.length === 0) { setError("No valid rows to import."); setStep("preview"); return; }
+    if (valid.length === 0) { setError("没有有效数据行可供导入"); setStep("preview"); return; }
 
     const supabase = createClient();
     const insertedRows = valid.map((r) => ({
@@ -180,7 +180,7 @@ export default function ImportPage() {
   // ── Render ────────────────────────────────────────────────────────
   const backLink = (
     <Button variant="ghost" size="sm" asChild className="mb-2">
-      <Link href="/properties"><ArrowLeft className="size-4" /> Back to Properties</Link>
+      <Link href="/properties"><ArrowLeft className="size-4" /> Back to 条房源</Link>
     </Button>
   );
 
@@ -188,7 +188,7 @@ export default function ImportPage() {
     <div className="space-y-6">
       {backLink}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Import Properties</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Import 条房源</h1>
         <p className="text-sm text-muted-foreground">Upload an Excel file to batch-import properties.</p>
       </div>
 
@@ -203,7 +203,7 @@ export default function ImportPage() {
       {step === "upload" && (
         <Card>
           <CardHeader>
-            <CardTitle>Upload Excel File</CardTitle>
+            <CardTitle>上传房源文件</CardTitle>
             <CardDescription>
               Your .xlsx file should have a header row. Supported columns:
               name, address, rent, area, rooms, owner_name, owner_phone, notes
@@ -225,7 +225,7 @@ export default function ImportPage() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle>Preview ({rows.length} rows)</CardTitle>
+              <CardTitle>Preview ({rows.length} 行)</CardTitle>
               <CardDescription>
                 已映射字段: {mappedFields.join(", ")}.
                 {rows.filter((r) => r._errors.length > 0).length > 0 && (
@@ -266,7 +266,7 @@ export default function ImportPage() {
             </CardContent>
           </Card>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={reset}>Cancel</Button>
+            <Button variant="outline" onClick={reset}>取消</Button>
             <Button onClick={handleConfirm}>
               <Check className="size-4" />
               Confirm & Import {rows.filter((r) => r._errors.length === 0).length} Properties
@@ -280,7 +280,7 @@ export default function ImportPage() {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12">
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Importing properties...</p>
+            <p className="text-sm text-muted-foreground">正在导入房源...</p>
           </CardContent>
         </Card>
       )}
@@ -295,16 +295,16 @@ export default function ImportPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm">Successfully imported <strong>{result.inserted}</strong> properties.</p>
+            <p className="text-sm">已导入 <strong>{result.inserted}</strong> properties.</p>
             {result.errors.length > 0 && (
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 {result.errors.map((e, i) => <p key={i}>{e}</p>)}
               </div>
             )}
             <div className="flex gap-2 pt-4">
-              <Button variant="outline" onClick={reset}>Import Another File</Button>
+              <Button variant="outline" onClick={reset}>继续导入</Button>
               <Button variant="default" asChild>
-                <Link href="/properties">Go to Properties</Link>
+                <Link href="/properties">Go to 条房源</Link>
               </Button>
             </div>
           </CardContent>

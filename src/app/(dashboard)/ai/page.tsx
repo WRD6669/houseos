@@ -7,7 +7,7 @@ export default function AIPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">AI Assistant</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">AI 助手</h1>
         <p className="text-sm text-muted-foreground">获取 AI 驱动的洞察和自动化建议。</p>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
@@ -24,8 +24,8 @@ export default function AIPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Rent Optimization</CardTitle>
-            <CardDescription>Smart pricing suggestions.</CardDescription>
+            <CardTitle className="text-base">租金优化</CardTitle>
+            <CardDescription>智能定价建议</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">

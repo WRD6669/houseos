@@ -51,7 +51,7 @@ export function Sidebar() {
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
           <div className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-medium">AD</div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium">Admin</span>
+            <span className="text-sm font-medium">管理员</span>
             <span className="text-xs text-muted-foreground">admin@houseos.com</span>
           </div>
         </div>

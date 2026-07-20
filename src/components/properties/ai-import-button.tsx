@@ -9,7 +9,7 @@ export function AiImportButton() {
     <Button variant="outline" asChild>
       <Link href="/properties/ai-import">
         <Sparkles className="size-4" />
-        AI Import
+        AI 识别
       </Link>
     </Button>
   );

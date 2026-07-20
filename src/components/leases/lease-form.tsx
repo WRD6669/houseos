@@ -88,7 +88,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
     <>
       <Button onClick={() => setOpen(true)}>
         <Plus className="size-4" />
-        Add Lease
+        添加租约
       </Button>
 
       {open && (
@@ -97,7 +97,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
           <Card className="relative z-10 w-full max-w-lg shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Add Lease</CardTitle>
+                <CardTitle>添加租约</CardTitle>
                 <CardDescription>�����ͻ��뷿Դ����Լ��ϵ</CardDescription>
               </div>
               <Button variant="ghost" size="icon" onClick={() => !saving && setOpen(false)}>
@@ -158,10 +158,10 @@ export function AddLeaseButton({ customers, properties }: Props) {
                 )}
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>取消</Button>
                   <Button type="submit" disabled={saving}>
                     {saving && <Loader2 className="size-4 animate-spin" />}
-                    Save
+                    保存
                   </Button>
                 </div>
               </form>

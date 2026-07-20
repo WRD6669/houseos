@@ -120,7 +120,7 @@ export default function AiImportPage() {
     <div className="space-y-6">
       {backLink}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">AI Property Import</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">AI 房源识别</h1>
         <p className="text-sm text-muted-foreground">上传房源截图，AI 自动提取信息</p>
       </div>
 
@@ -151,9 +151,9 @@ export default function AiImportPage() {
       {step === "analyzing" && (
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
-            <CardHeader><CardTitle>Original Image</CardTitle></CardHeader>
+            <CardHeader><CardTitle>原图</CardTitle></CardHeader>
             <CardContent>
-              {imageUrl && <img src={imageUrl} alt="Uploaded screenshot" className="w-full rounded-lg border" />}
+              {imageUrl && <img src={imageUrl} alt="上传的截图" className="w-full rounded-lg border" />}
             </CardContent>
           </Card>
           <Card>
@@ -179,9 +179,9 @@ export default function AiImportPage() {
           <div className="grid gap-6 md:grid-cols-2">
             {/* Image preview */}
             <Card>
-              <CardHeader><CardTitle>Original Image</CardTitle></CardHeader>
+              <CardHeader><CardTitle>原图</CardTitle></CardHeader>
               <CardContent>
-                {imageUrl && <img src={imageUrl} alt="Uploaded screenshot" className="w-full rounded-lg border" />}
+                {imageUrl && <img src={imageUrl} alt="上传的截图" className="w-full rounded-lg border" />}
               </CardContent>
             </Card>
 
@@ -223,7 +223,7 @@ export default function AiImportPage() {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={reset}>Cancel</Button>
+            <Button variant="outline" onClick={reset}>取消</Button>
             <Button onClick={handleSave}>
               <Check className="size-4" />
               Save Property
@@ -252,11 +252,11 @@ export default function AiImportPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm"><strong>{result}</strong> has been added to your properties.</p>
+            <p className="text-sm"><strong>{result}</strong> 已添加到房源列表。</p>
             <div className="flex gap-2 pt-4">
-              <Button variant="outline" onClick={reset}>Import Another</Button>
+              <Button variant="outline" onClick={reset}>继续识别</Button>
               <Button variant="default" asChild>
-                <Link href="/properties">Go to Properties</Link>
+                <Link href="/properties">查看房源列表</Link>
               </Button>
             </div>
           </CardContent>
