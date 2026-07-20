@@ -39,7 +39,70 @@ async function fetchIdNames(table: string, ids: string[]): Promise<Record<string
   return map;
 }
 
-// 鈹€鈹€ Customers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Dashboard Stats ───────────────────────────────────────────────────
+
+export interface DashboardStats {
+  customerCount: number;
+  propertyCount: number;
+  occupiedCount: number;
+  vacantCount: number;
+  occupancyRate: number;
+  totalMonthlyRent: number;
+  recentActivity: { action: string; target: string; time: string }[];
+}
+
+function formatRelativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "刚刚";
+  if (mins < 60) return mins + " 分钟前";
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return hours + " 小时前";
+  const days = Math.floor(hours / 24);
+  if (days < 30) return days + " 天前";
+  return new Date(iso).toISOString().slice(0, 10);
+}
+
+export async function fetchDashboardStats(): Promise<QueryResult<DashboardStats>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+
+  const { count: customerCount, error: cErr } = await supabase.from("customers").select("*", { count: "exact", head: true });
+  if (cErr) return { data: null, error: cErr.message };
+
+  const { data: props, error: pErr } = await supabase.from("properties").select("status, rent, name, created_at").order("created_at", { ascending: false });
+  if (pErr) return { data: null, error: pErr.code === "42P01" ? "TABLES_NOT_FOUND" : pErr.message };
+
+  const propertyCount = props?.length ?? 0;
+  const occupied = props?.filter((p: { status: string }) => p.status === "rented" || p.status === "occupied").length ?? 0;
+  const vacant = props?.filter((p: { status: string }) => p.status === "vacant").length ?? 0;
+  const occupancyRate = propertyCount > 0 ? Math.round((occupied / propertyCount) * 100) : 0;
+
+  const { data: activeLeases, error: lErr } = await supabase.from("leases").select("monthly_rent, customer_id, property_id, created_at").eq("status", "active");
+  if (lErr) return { data: null, error: lErr.code === "42P01" ? "TABLES_NOT_FOUND" : lErr.message };
+  const totalMonthlyRent = (activeLeases ?? []).reduce((sum: number, l: { monthly_rent: number }) => sum + (l.monthly_rent ?? 0), 0);
+
+  const recent: { action: string; target: string; time: string }[] = [];
+
+  const { data: recentCustomers } = await supabase.from("customers").select("name, created_at").order("created_at", { ascending: false }).limit(3);
+  if (recentCustomers) for (const c of recentCustomers as { name: string; created_at: string }[]) recent.push({ action: "新增客户", target: c.name, time: c.created_at });
+
+  const { data: recentProps } = await supabase.from("properties").select("name, created_at").order("created_at", { ascending: false }).limit(3);
+  if (recentProps) for (const p of recentProps as { name: string; created_at: string }[]) recent.push({ action: "新增房源", target: p.name, time: p.created_at });
+
+  const { data: recentLeases } = await supabase.from("leases").select("created_at").order("created_at", { ascending: false }).limit(3);
+  if (recentLeases) for (const l of recentLeases as { created_at: string }[]) recent.push({ action: "新签租约", target: "", time: l.created_at });
+
+  recent.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+  const recentActivity = recent.slice(0, 6).map((r) => ({ ...r, time: formatRelativeTime(r.time) }));
+
+  return {
+    data: { customerCount: customerCount ?? 0, propertyCount, occupiedCount: occupied, vacantCount: vacant, occupancyRate, totalMonthlyRent, recentActivity },
+    error: null,
+  };
+}
+
+// ── Customers ─────────────────────────────────────────────────────────
 
 export async function fetchCustomers(): Promise<QueryResult<CustomerWithPropertyCount[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -65,7 +128,6 @@ export async function createCustomer(input: {
     .select("id, name, email, phone, wechat, id_card, notes, status, created_at").single();
   if (error) {
     if (error.code === "42P01" || error.message?.includes("does not exist")) return { data: null, error: "TABLES_NOT_FOUND" };
-    if (error.code === "23505") return { data: null, error: "姝ら偖绠卞凡瀛樺湪" };
     return { data: null, error: error.message };
   }
   return { data: { ...data, property_count: 0 } as CustomerWithPropertyCount, error: null };
@@ -76,12 +138,12 @@ export async function updateCustomer(id: string, input: {
 }): Promise<QueryResult<CustomerWithPropertyCount>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
-  const { data, error } = await supabase.from("customers").update({ name: input.name, email: input.email || null, phone: input.phone || null, wechat: input.wechat || null, id_card: input.id_card || null, notes: input.notes || null })
+  const { data, error } = await supabase.from("customers")
+    .update({ name: input.name, email: input.email || null, phone: input.phone || null, wechat: input.wechat || null, id_card: input.id_card || null, notes: input.notes || null })
     .eq("id", id)
     .select("id, name, email, phone, wechat, id_card, notes, status, created_at").single();
   if (error) {
     if (error.code === "42P01" || error.message?.includes("does not exist")) return { data: null, error: "TABLES_NOT_FOUND" };
-    if (error.code === "23505") return { data: null, error: "姝ら偖绠卞凡瀛樺湪" };
     return { data: null, error: error.message };
   }
   return { data: { ...data, property_count: 0 } as CustomerWithPropertyCount, error: null };
@@ -90,12 +152,13 @@ export async function updateCustomer(id: string, input: {
 export async function deleteCustomer(id: string): Promise<QueryResult<null>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
-  const { error } = await supabase.from("customers").delete().eq("id", id);
+  const { error, data } = await supabase.from("customers").delete().eq("id", id).select("id");
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  if (!error && !data?.length) return { data: null, error: "删除失败：未能删除此记录，请检查数据库权限" };
   return { data: null, error: null };
 }
 
-// 鈹€鈹€ Properties 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Properties ────────────────────────────────────────────────────────
 
 export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -150,12 +213,13 @@ export async function updateProperty(id: string, input: {
 export async function deleteProperty(id: string): Promise<QueryResult<null>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
-  const { error } = await supabase.from("properties").delete().eq("id", id);
+  const { error, data } = await supabase.from("properties").delete().eq("id", id).select("id");
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  if (!error && !data?.length) return { data: null, error: "删除失败：未能删除此记录，请检查数据库权限" };
   return { data: null, error: null };
 }
 
-// 鈹€鈹€ Leases 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Leases ────────────────────────────────────────────────────────────
 
 export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -178,8 +242,8 @@ export async function fetchLeases(): Promise<QueryResult<LeaseWithDetails[]>> {
 
   const result: LeaseWithDetails[] = (data || []).map((l) => ({
     ...l,
-    customer_name: customerNames[l.customer_id] || "鏈煡",
-    property_name: propertyNames[l.property_id] || "鏈煡",
+    customer_name: customerNames[l.customer_id] || "未知",
+    property_name: propertyNames[l.property_id] || "未知",
     property_address: addressMap[l.property_id] || "",
   }));
   return { data: result, error: null };
@@ -209,8 +273,8 @@ export async function createLease(input: {
   return {
     data: {
       ...data,
-      customer_name: customerNames[data.customer_id] || "鏈煡",
-      property_name: propertyNames[data.property_id] || "鏈煡",
+      customer_name: customerNames[data.customer_id] || "未知",
+      property_name: propertyNames[data.property_id] || "未知",
       property_address: pa?.address || "",
     } as LeaseWithDetails,
     error: null,
@@ -242,8 +306,8 @@ export async function updateLease(id: string, input: {
   return {
     data: {
       ...data,
-      customer_name: customerNames[data.customer_id] || "鏈煡",
-      property_name: propertyNames[data.property_id] || "鏈煡",
+      customer_name: customerNames[data.customer_id] || "未知",
+      property_name: propertyNames[data.property_id] || "未知",
       property_address: pa?.address || "",
     } as LeaseWithDetails,
     error: null,
@@ -253,8 +317,9 @@ export async function updateLease(id: string, input: {
 export async function deleteLease(id: string): Promise<QueryResult<null>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
   const supabase = await getServerClient();
-  const { error } = await supabase.from("leases").delete().eq("id", id);
+  const { error, data } = await supabase.from("leases").delete().eq("id", id).select("id");
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  if (!error && !data?.length) return { data: null, error: "删除失败：未能删除此记录，请检查数据库权限" };
   return { data: null, error: null };
 }
 

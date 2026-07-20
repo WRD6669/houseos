@@ -3,6 +3,9 @@ import { PropertiesTable } from "@/components/properties/properties-table";
 import { AddPropertyButton } from "@/components/properties/property-form";
 import { ImportButton } from "@/components/properties/import-button";
 import { AiImportButton } from "@/components/properties/ai-import-button";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Wand2 } from "lucide-react";
 
 export default async function PropertiesPage() {
   const pageTitle = (
@@ -13,6 +16,12 @@ export default async function PropertiesPage() {
       </div>
       <div className="flex items-center gap-2">
         <AiImportButton />
+        <Button variant="outline" asChild>
+          <Link href="/properties/ai-text-import">
+            <Wand2 className="size-4" />
+            AI快速录入
+          </Link>
+        </Button>
         <ImportButton />
         <AddPropertyButton />
       </div>
