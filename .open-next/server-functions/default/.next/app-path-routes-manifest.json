@@ -1,0 +1,12 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/",
+  "/(dashboard)/dashboard/page": "/dashboard",
+  "/(dashboard)/properties/page": "/properties",
+  "/(dashboard)/properties/ai-import/page": "/properties/ai-import",
+  "/(dashboard)/ai/page": "/ai",
+  "/(dashboard)/leases/page": "/leases",
+  "/(dashboard)/properties/import/page": "/properties/import",
+  "/(dashboard)/customers/page": "/customers"
+}

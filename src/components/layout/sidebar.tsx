@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -7,11 +7,11 @@ import { Separator } from "@/components/ui/separator";
 import { LayoutDashboard, Users, Building2, FileText, Bot, Home } from "lucide-react";
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Customers", href: "/customers", icon: Users },
-  { label: "Properties", href: "/properties", icon: Building2 },
-  { label: "Leases", href: "/leases", icon: FileText },
-  { label: "AI", href: "/ai", icon: Bot },
+  { label: "工作台", href: "/dashboard", icon: LayoutDashboard },
+  { label: "客户管理", href: "/customers", icon: Users },
+  { label: "房源管理", href: "/properties", icon: Building2 },
+  { label: "租约管理", href: "/leases", icon: FileText },
+  { label: "AI 助手", href: "/ai", icon: Bot },
 ];
 
 export function Sidebar() {

@@ -1,0 +1,12 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/page": "app/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/properties/page": "app/(dashboard)/properties/page.js",
+  "/(dashboard)/properties/ai-import/page": "app/(dashboard)/properties/ai-import/page.js",
+  "/(dashboard)/ai/page": "app/(dashboard)/ai/page.js",
+  "/(dashboard)/leases/page": "app/(dashboard)/leases/page.js",
+  "/(dashboard)/properties/import/page": "app/(dashboard)/properties/import/page.js",
+  "/(dashboard)/customers/page": "app/(dashboard)/customers/page.js"
+}

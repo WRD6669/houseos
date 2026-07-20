@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -39,8 +39,8 @@ export function AddPropertyButton() {
     e.preventDefault();
     setError(null);
 
-    if (!form.name.trim()) { setError("Name is required."); return; }
-    if (!form.address.trim()) { setError("Address is required."); return; }
+    if (!form.name.trim()) { setError("请输入房源名称"); return; }
+    if (!form.address.trim()) { setError("请输入地址"); return; }
 
     setSaving(true);
     const supabase = createClient();
@@ -65,7 +65,7 @@ export function AddPropertyButton() {
 
     if (insertError) {
       if (insertError.code === "42P01") {
-        setError("Database tables not found. Run the SQL migration first.");
+        setError("数据库表不存在，请先执行 SQL 迁移");
       } else {
         setError(insertError.message);
       }
@@ -91,7 +91,7 @@ export function AddPropertyButton() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Add Property</CardTitle>
-                <CardDescription>Enter the property details below.</CardDescription>
+                <CardDescription>填写以下房源信息</CardDescription>
               </div>
               <Button variant="ghost" size="icon" onClick={() => !saving && setOpen(false)}>
                 <X className="size-4" />
@@ -102,44 +102,44 @@ export function AddPropertyButton() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Name <span className="text-destructive">*</span></label>
-                    <Input placeholder="e.g. Sunset Apartments 4B" value={form.name} onChange={(e) => set("name", e.target.value)} disabled={saving} autoFocus />
+                    <Input placeholder="如：十四佳园 1-3-301" value={form.name} onChange={(e) => set("name", e.target.value)} disabled={saving} autoFocus />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Rent (USD)</label>
-                    <Input type="number" placeholder="e.g. 2500" value={form.rent} onChange={(e) => set("rent", e.target.value)} disabled={saving} />
+                    <label className="text-sm font-medium">月租 (元)</label>
+                    <Input type="number" placeholder="如：2500" value={form.rent} onChange={(e) => set("rent", e.target.value)} disabled={saving} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Address <span className="text-destructive">*</span></label>
-                  <Input placeholder="Full address" value={form.address} onChange={(e) => set("address", e.target.value)} disabled={saving} />
+                  <Input placeholder="详细地址" value={form.address} onChange={(e) => set("address", e.target.value)} disabled={saving} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Area (sq ft)</label>
-                    <Input type="number" placeholder="e.g. 1200" value={form.area} onChange={(e) => set("area", e.target.value)} disabled={saving} />
+                    <label className="text-sm font-medium">面积 (㎡)</label>
+                    <Input type="number" placeholder="如：94" value={form.area} onChange={(e) => set("area", e.target.value)} disabled={saving} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Rooms</label>
-                    <Input type="number" placeholder="e.g. 3" value={form.rooms} onChange={(e) => set("rooms", e.target.value)} disabled={saving} />
+                    <label className="text-sm font-medium">房间数</label>
+                    <Input type="number" placeholder="如：3" value={form.rooms} onChange={(e) => set("rooms", e.target.value)} disabled={saving} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Owner Name</label>
-                    <Input placeholder="Property owner" value={form.owner_name} onChange={(e) => set("owner_name", e.target.value)} disabled={saving} />
+                    <label className="text-sm font-medium">房东姓名</label>
+                    <Input placeholder="房东姓名" value={form.owner_name} onChange={(e) => set("owner_name", e.target.value)} disabled={saving} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Owner Phone</label>
+                    <label className="text-sm font-medium">房东电话</label>
                     <Input placeholder="+86 138-0000-0000" value={form.owner_phone} onChange={(e) => set("owner_phone", e.target.value)} disabled={saving} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Notes</label>
-                  <Input placeholder="Additional notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
+                  <label className="text-sm font-medium">备注</label>
+                  <Input placeholder="备注信息" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
                 </div>
 
                 {error && (
@@ -147,7 +147,7 @@ export function AddPropertyButton() {
                 )}
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+                  <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={saving}>取消</Button>
                   <Button type="submit" disabled={saving}>
                     {saving && <Loader2 className="size-4 animate-spin" />}
                     Save

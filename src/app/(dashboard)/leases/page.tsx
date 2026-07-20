@@ -7,9 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { LeaseWithDetails } from "@/lib/supabase/types";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  active: { label: "Active", variant: "default" },
-  expired: { label: "Expired", variant: "secondary" },
-  terminated: { label: "Terminated", variant: "destructive" },
+  active: { label: "进行中", variant: "default" },
+  expired: { label: "已到期", variant: "secondary" },
+  terminated: { label: "已终止", variant: "destructive" },
 };
 
 function formatDate(iso: string) { return new Date(iso).toISOString().slice(0, 10); }
@@ -67,8 +67,8 @@ export default async function LeasesPage() {
   const pageTitle = (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Leases</h1>
-        <p className="text-sm text-muted-foreground">Manage lease agreements between customers and properties.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">租约管理</h1>
+        <p className="text-sm text-muted-foreground">管理客户与房源的租约关系</p>
       </div>
       <Suspense fallback={null}>
         <LeaseButtonWrapper />
@@ -85,7 +85,7 @@ export default async function LeasesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m0 0v2m0-2h2m-2 0H10m9.364-6.364A9 9 0 1 1 6.636 6.636a9 9 0 0 1 12.728 12.728Z" />
             </svg>
           </div>
-          <h3 className="mb-1 text-lg font-medium">Supabase Not Configured</h3>
+          <h3 className="mb-1 text-lg font-medium">Supabase 未配置</h3>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">
             Open <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code> and set <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
           </p>
@@ -99,8 +99,8 @@ export default async function LeasesPage() {
     return (
       <div className="space-y-6">{pageTitle}
         <div className="rounded-xl border bg-card p-12 text-center">
-          <h3 className="mb-1 text-lg font-medium">Database Tables Not Found</h3>
-          <p className="mx-auto max-w-md text-sm text-muted-foreground">Run the SQL migrations in your Supabase SQL Editor.</p>
+          <h3 className="mb-1 text-lg font-medium">数据库表不存在</h3>
+          <p className="mx-auto max-w-md text-sm text-muted-foreground">请在 Supabase SQL 编辑器中执行迁移文件</p>
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ export default async function LeasesPage() {
     return (
       <div className="space-y-6">{pageTitle}
         <div className="rounded-xl border bg-card p-12 text-center">
-          <h3 className="mb-1 text-lg font-medium">Connection Error</h3>
+          <h3 className="mb-1 text-lg font-medium">连接错误</h3>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">{error}</p>
         </div>
       </div>

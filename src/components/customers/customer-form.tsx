@@ -37,7 +37,7 @@ export function AddCustomerButton() {
 
     const validTypes = ["image/png", "image/jpeg", "image/jpg"];
     if (!validTypes.includes(file.type)) {
-      setError("Only PNG, JPG, JPEG images are supported.");
+      setError("仅支持 PNG、JPG、JPEG 格式图片");
       return;
     }
 
@@ -63,7 +63,7 @@ export function AddCustomerButton() {
         notes: formNotesParts.length > 0 ? formNotesParts.join("; ") : prev.notes,
       }));
     } catch {
-      setError("OCR processing failed. Try a clearer image.");
+      setError("图片识别失败，请尝试更清晰的图片");
     } finally {
       setOcrLoading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -73,7 +73,7 @@ export function AddCustomerButton() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!form.name.trim()) { setError("Name is required."); return; }
+    if (!form.name.trim()) { setError("请输入姓名"); return; }
 
     setSaving(true);
     const supabase = createClient();
@@ -85,8 +85,8 @@ export function AddCustomerButton() {
     setSaving(false);
 
     if (insertError) {
-      if (insertError.code === "23505") setError("A customer with this email already exists.");
-      else if (insertError.code === "42P01") setError("Database tables not found. Run the SQL migration first.");
+      if (insertError.code === "23505") setError("该邮箱已存在");
+      else if (insertError.code === "42P01") setError("数据库表不存在，请先执行 SQL 迁移");
       else setError(insertError.message);
       return;
     }
@@ -108,10 +108,10 @@ export function AddCustomerButton() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Add Customer</CardTitle>
-                <CardDescription>Enter details or upload a document image.</CardDescription>
+                <CardDescription>输入客户信息或上传证件图片自动识别</CardDescription>
               </div>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" title="Upload image for OCR" disabled={ocrLoading || saving} onClick={() => fileRef.current?.click()}>
+                <Button variant="ghost" size="icon" title="上传图片智能识别" disabled={ocrLoading || saving} onClick={() => fileRef.current?.click()}>
                   {ocrLoading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => !saving && setOpen(false)}>
@@ -122,14 +122,14 @@ export function AddCustomerButton() {
             <CardContent>
               {ocrLoading && (
                 <div className="mb-4 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" /> Scanning image with AI...
+                  <Loader2 className="size-4 animate-spin" /> AI 正在识别图片...
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Name <span className="text-destructive">*</span></label>
-                  <Input placeholder="Full name" value={form.name} onChange={(e) => set("name", e.target.value)} disabled={saving} autoFocus />
+                  <Input placeholder="请输入姓名" value={form.name} onChange={(e) => set("name", e.target.value)} disabled={saving} autoFocus />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Email</label>
@@ -141,15 +141,15 @@ export function AddCustomerButton() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">WeChat</label>
-                  <Input placeholder="WeChat ID" value={form.wechat} onChange={(e) => set("wechat", e.target.value)} disabled={saving} />
+                  <Input placeholder="微信号" value={form.wechat} onChange={(e) => set("wechat", e.target.value)} disabled={saving} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">ID Card</label>
-                  <Input placeholder="ID card number" value={form.id_card} onChange={(e) => set("id_card", e.target.value)} disabled={saving} />
+                  <Input placeholder="身份证号码" value={form.id_card} onChange={(e) => set("id_card", e.target.value)} disabled={saving} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Notes</label>
-                  <Input placeholder="Additional notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
+                  <Input placeholder="备注信息" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
                 </div>
 
                 {error && (

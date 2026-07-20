@@ -39,7 +39,7 @@ export default function AiImportPage() {
 
     const validTypes = ["image/png", "image/jpeg", "image/jpg"];
     if (!validTypes.includes(file.type)) {
-      setError("Only PNG, JPG, and JPEG images are supported.");
+      setError("仅支持 PNG、JPG、JPEG 格式图片");
       return;
     }
 
@@ -49,14 +49,14 @@ export default function AiImportPage() {
 
     try {
       const text = await extractTextFromImage(file);
-      if (!text.trim()) { setError("No text could be extracted from the image. Try a clearer screenshot."); setStep("upload"); return; }
+      if (!text.trim()) { setError("未能从图片中识别到文字，请尝试更清晰的截图"); setStep("upload"); return; }
       setRawText(text);
       const result = parsePropertyText(text);
       setParsed(result);
       setEdits({});
       setStep("preview");
     } catch {
-      setError("OCR processing failed. Please try a different image or check your connection.");
+      setError("AI 识别失败，请尝试其他图片或检查网络");
       setStep("upload");
     }
   }
@@ -70,7 +70,7 @@ export default function AiImportPage() {
     const name = edits["name"] ?? parsed.name ?? "";
     const address = edits["address"] ?? parsed.address ?? "";
 
-    if (!name.trim()) { setError('Name is required. Please enter a property name.'); setStep("preview"); return; }
+    if (!name.trim()) { setError('请输入房源名称'); setStep("preview"); return; }
 
     const supabase = createClient();
     const { error: insertError } = await supabase.from("properties").insert({
@@ -121,7 +121,7 @@ export default function AiImportPage() {
       {backLink}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">AI Property Import</h1>
-        <p className="text-sm text-muted-foreground">Upload a property screenshot and let AI extract the details.</p>
+        <p className="text-sm text-muted-foreground">上传房源截图，AI 自动提取信息</p>
       </div>
 
       {error && (
@@ -159,8 +159,8 @@ export default function AiImportPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center gap-4 py-20">
               <ScanEye className="size-12 animate-pulse text-primary" />
-              <p className="text-sm font-medium">Analyzing image with AI...</p>
-              <p className="text-xs text-muted-foreground">Extracting text and identifying property details</p>
+              <p className="text-sm font-medium">AI 正在分析图片...</p>
+              <p className="text-xs text-muted-foreground">正在识别文字并提取房源信息</p>
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </CardContent>
           </Card>
@@ -172,7 +172,7 @@ export default function AiImportPage() {
         <>
           {/* OCR raw text */}
           <details className="cursor-pointer text-xs text-muted-foreground">
-            <summary className="hover:text-foreground">View extracted text</summary>
+            <summary className="hover:text-foreground">查看识别原文</summary>
             <pre className="mt-2 rounded-md bg-muted p-3 text-xs whitespace-pre-wrap max-h-40 overflow-auto">{rawText}</pre>
           </details>
 
@@ -192,28 +192,28 @@ export default function AiImportPage() {
                   <Sparkles className="size-5 text-primary" />
                   AI Recognition Results
                 </CardTitle>
-                <CardDescription>Review and edit the extracted fields below.</CardDescription>
+                <CardDescription>请核对并修改识别结果</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {([
-                  ["name", "Name", true],
-                  ["address", "Address", false],
-                  ["rent", "Rent (USD)", false],
-                  ["area", "Area (sq ft)", false],
-                  ["rooms", "Rooms", false],
-                  ["owner_name", "Owner Name", false],
-                  ["owner_phone", "Owner Phone", false],
-                  ["notes", "Notes", false],
+                  ["name", "房源名称", true],
+                  ["address", "地址", false],
+                  ["rent", "月租 (元)", false],
+                  ["area", "面积 (㎡)", false],
+                  ["rooms", "户型", false],
+                  ["owner_name", "房东姓名", false],
+                  ["owner_phone", "房东电话", false],
+                  ["notes", "备注", false],
                 ] as [keyof ParsedProperty, string, boolean][]).map(([field, label, required]) => (
                   <div key={field} className="space-y-1">
                     <label className="text-sm font-medium">
                       {label}{required && <span className="text-destructive"> *</span>}
-                      {!required && !hasValue(field) && <span className="text-muted-foreground font-normal"> (not found)</span>}
+                      {!required && !hasValue(field) && <span className="text-muted-foreground font-normal">（未识别）</span>}
                     </label>
                     <Input
                       value={displayValue(field)}
                       onChange={(e) => setEdit(field, e.target.value)}
-                      placeholder={required ? "Required" : "Not found in image"}
+                      placeholder={required ? "必填" : "未识别到"}
                       className={required && !displayValue(field) ? "border-destructive" : ""}
                     />
                   </div>
@@ -237,7 +237,7 @@ export default function AiImportPage() {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12">
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Saving property to database...</p>
+            <p className="text-sm text-muted-foreground">正在保存房源...</p>
           </CardContent>
         </Card>
       )}

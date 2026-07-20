@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Building2, DollarSign, Users, TrendingUp } from "lucide-react";
 
 const stats = [
-  { label: "Total Revenue", value: ",231", change: "+20.1%", icon: DollarSign },
+  { label: "总收入", value: ",231", change: "+20.1%", icon: DollarSign },
   { label: "Properties", value: "24", change: "+4", icon: Building2 },
   { label: "Customers", value: "156", change: "+12", icon: Users },
   { label: "Occupancy", value: "92%", change: "+2.4%", icon: TrendingUp },
@@ -12,7 +12,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">工作台</h1>
         <p className="text-sm text-muted-foreground">Overview of your property management.</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

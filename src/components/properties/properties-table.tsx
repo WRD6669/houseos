@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +10,8 @@ import type { PropertyWithDetails } from "@/lib/supabase/types";
 
 // Map DB status/type (lowercase) to UI display + badge variant
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  occupied:    { label: "Occupied",    variant: "default" },
-  vacant:      { label: "Vacant",      variant: "secondary" },
+  occupied:    { label: "已租",    variant: "default" },
+  vacant:      { label: "空置",      variant: "secondary" },
   maintenance: { label: "Maintenance", variant: "destructive" },
 };
 
@@ -53,7 +53,7 @@ export function PropertiesTable({ initialData }: Props) {
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
-              placeholder="Search properties..."
+              placeholder="搜索房源..."
               className="pl-8 h-9"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

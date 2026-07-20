@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +11,8 @@ import type { CustomerWithPropertyCount } from "@/lib/supabase/types";
 
 // Map DB status (lowercase) to UI display + badge variant
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  active:   { label: "Active",   variant: "default" },
-  inactive: { label: "Inactive", variant: "outline" },
+  活跃:   { label: "活跃",   variant: "default" },
+  in活跃: { label: "In活跃", variant: "outline" },
   pending:  { label: "Pending",  variant: "secondary" },
 };
 
@@ -54,7 +54,7 @@ export function CustomersTable({ initialData }: Props) {
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input
-              placeholder="Search customers..."
+              placeholder="搜索客户..."
               className="pl-8 h-9"
               value={query}
               onChange={(e) => setQuery(e.target.value)}

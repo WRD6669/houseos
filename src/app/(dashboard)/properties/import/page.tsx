@@ -74,7 +74,7 @@ export default function ImportPage() {
     if (!file) return;
 
     if (!file.name.endsWith(".xlsx")) {
-      setError("Only .xlsx files are supported.");
+      setError("仅支持 .xlsx 格式文件");
       return;
     }
 
@@ -84,7 +84,7 @@ export default function ImportPage() {
         const wb = XLSX.read(evt.target?.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(ws, { defval: null }) as Record<string, unknown>[];
-        if (json.length === 0) { setError("The sheet is empty."); return; }
+        if (json.length === 0) { setError("表格内容为空"); return; }
 
         // Auto-map headers
         const headers = Object.keys(json[0]);
@@ -116,12 +116,12 @@ export default function ImportPage() {
             else if (field === "owner_phone") r.owner_phone = String(val ?? "").trim() || null;
             else if (field === "notes") r.notes = String(val ?? "").trim() || null;
           }
-          if (!r.name) r._errors.push("Name is empty");
+          if (!r.name) r._errors.push("名称为空");
           parsed.push(r);
         }
 
         const validCount = parsed.filter((r) => r._errors.length === 0).length;
-        if (validCount === 0) { setError("No valid rows found (all rows have empty names)."); return; }
+        if (validCount === 0) { setError("没有有效数据行（所有行的名称均为空）"); return; }
 
         setRows(parsed);
         setStep("preview");
@@ -227,9 +227,9 @@ export default function ImportPage() {
             <CardHeader>
               <CardTitle>Preview ({rows.length} rows)</CardTitle>
               <CardDescription>
-                Mapped fields: {mappedFields.join(", ")}.
+                已映射字段: {mappedFields.join(", ")}.
                 {rows.filter((r) => r._errors.length > 0).length > 0 && (
-                  <span className="text-destructive"> {rows.filter((r) => r._errors.length > 0).length} rows have errors.</span>
+                  <span className="text-destructive"> {rows.filter((r) => r._errors.length > 0).length} 行数据有错误.</span>
                 )}
               </CardDescription>
             </CardHeader>

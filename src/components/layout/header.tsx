@@ -9,7 +9,7 @@ export function Header() {
       <div className="relative w-full max-w-sm">
         <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
         <Input
-          placeholder="Search..."
+          placeholder="搜索..."
           className="pl-8 h-9"
         />
       </div>

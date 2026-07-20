@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -46,10 +46,10 @@ export function AddLeaseButton({ customers, properties }: Props) {
     e.preventDefault();
     setError(null);
 
-    if (!form.customer_id) { setError("Please select a customer."); return; }
-    if (!form.property_id) { setError("Please select a property."); return; }
-    if (!form.start_date) { setError("Start date is required."); return; }
-    if (!form.end_date) { setError("End date is required."); return; }
+    if (!form.customer_id) { setError("��ѡ��ͻ�"); return; }
+    if (!form.property_id) { setError("��ѡ��Դ"); return; }
+    if (!form.start_date) { setError("��ѡ��ʼ����"); return; }
+    if (!form.end_date) { setError("��ѡ���������"); return; }
 
     setSaving(true);
     const supabase = createClient();
@@ -70,7 +70,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
 
     if (insertError) {
       if (insertError.code === "42P01") {
-        setError("Database tables not found. Run the SQL migration first.");
+        setError("���ݿ������ڣ�����ִ�� SQL Ǩ��");
       } else {
         setError(insertError.message);
       }
@@ -98,7 +98,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Add Lease</CardTitle>
-                <CardDescription>Create a lease between a customer and property.</CardDescription>
+                <CardDescription>�����ͻ��뷿Դ����Լ��ϵ</CardDescription>
               </div>
               <Button variant="ghost" size="icon" onClick={() => !saving && setOpen(false)}>
                 <X className="size-4" />
@@ -109,7 +109,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Customer <span className="text-destructive">*</span></label>
                   <select className={selectClass} value={form.customer_id} onChange={(e) => set("customer_id", e.target.value)} disabled={saving}>
-                    <option value="">Select a customer...</option>
+                    <option value="">ѡ��ͻ�...</option>
                     {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
@@ -117,7 +117,7 @@ export function AddLeaseButton({ customers, properties }: Props) {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Property <span className="text-destructive">*</span></label>
                   <select className={selectClass} value={form.property_id} onChange={(e) => set("property_id", e.target.value)} disabled={saving}>
-                    <option value="">Select a property...</option>
+                    <option value="">ѡ��Դ...</option>
                     {properties.map((p) => <option key={p.id} value={p.id}>{p.name}{p.address ? ` - ${p.address}` : ""}</option>)}
                   </select>
                 </div>
@@ -135,22 +135,22 @@ export function AddLeaseButton({ customers, properties }: Props) {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Monthly Rent</label>
+                    <label className="text-sm font-medium">月租 (元)</label>
                     <Input type="number" placeholder="2500" value={form.monthly_rent} onChange={(e) => set("monthly_rent", e.target.value)} disabled={saving} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Deposit</label>
+                    <label className="text-sm font-medium">Ѻ��</label>
                     <Input type="number" placeholder="5000" value={form.deposit} onChange={(e) => set("deposit", e.target.value)} disabled={saving} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Pay Day</label>
+                    <label className="text-sm font-medium">付款日</label>
                     <Input type="number" min="1" max="31" placeholder="1" value={form.payment_day} onChange={(e) => set("payment_day", e.target.value)} disabled={saving} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Notes</label>
-                  <Input placeholder="Additional notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
+                  <label className="text-sm font-medium">��ע</label>
+                  <Input placeholder="备注信息" value={form.notes} onChange={(e) => set("notes", e.target.value)} disabled={saving} />
                 </div>
 
                 {error && (
