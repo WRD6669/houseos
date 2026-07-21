@@ -54,6 +54,7 @@ export interface Property {
   source?: string;
   manager?: string;
   follow_up_content?: string;
+  follow_up?: string;
   last_follow_up_time?: string;
   viewing_method?: string;
   owner_name: string | null;
@@ -155,6 +156,7 @@ export interface PropertyWithDetails {
   source: string | null;
   manager: string | null;
   follow_up_content: string | null;
+  follow_up: string | null;
   last_follow_up_time: string | null;
   viewing_method: string | null;
   primary_image_url: string | null;

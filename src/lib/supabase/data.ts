@@ -163,7 +163,7 @@ export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails
   const supabase = await getServerClient();
   const { data, error } = await supabase
     .from("properties")
-    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, living_rooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, property_no, district, building, unit_num, room_number, usage_type, kitchens, balconies, payment_method, source, manager, follow_up_content, last_follow_up_time, viewing_method, created_at").order("created_at", { ascending: false });
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, living_rooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, property_no, district, building, unit_num, room_number, usage_type, kitchens, balconies, payment_method, source, manager, follow_up_content, follow_up, last_follow_up_time, viewing_method, created_at").order("created_at", { ascending: false });
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
   const { data: al } = await supabase.from("leases").select("property_id, customer_id").eq("status", "active");
   const tm: Record<string, string> = {};
