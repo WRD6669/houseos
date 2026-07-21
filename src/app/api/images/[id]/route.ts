@@ -44,3 +44,56 @@ export async function DELETE(
     return NextResponse.json({ error: "服务器内部错误" }, { status: 500 });
   }
 }
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    // Only handle primary toggle for now
+    if (body.is_primary !== true && body.is_primary !== false) {
+      return NextResponse.json({ error: "请提供 is_primary 参数" }, { status: 400 });
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Get the image to know which property it belongs to
+    const { data: img } = await supabase
+      .from("property_images")
+      .select("property_id")
+      .eq("id", id)
+      .single();
+
+    if (!img) {
+      return NextResponse.json({ error: "图片不存在" }, { status: 404 });
+    }
+
+    if (body.is_primary) {
+      // Unset all primary for this property
+      await supabase
+        .from("property_images")
+        .update({ is_primary: false })
+        .eq("property_id", img.property_id);
+    }
+
+    // Set/unset this image as primary
+    const { error } = await supabase
+      .from("property_images")
+      .update({ is_primary: body.is_primary })
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: "保存失败" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Image patch error:", error);
+    return NextResponse.json({ error: "服务器内部错误" }, { status: 500 });
+  }
+}

@@ -112,23 +112,22 @@ export function ImageUploader({ propertyId, images, onImagesChange, disabled }: 
   }
 
   async function handleSetPrimary(imageId: string) {
-    const supabase = createClient();
-    // Unset all primary
-    const { error } = await supabase
-      .from("property_images")
-      .update({ is_primary: false })
-      .eq("property_id", propertyId);
-    if (!error) {
-      await supabase
-        .from("property_images")
-        .update({ is_primary: true })
-        .eq("id", imageId);
+    // Use server API (service_role key) to bypass RLS
+    const res = await fetch(`/api/images/${imageId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ is_primary: true }),
+    });
+    if (res.ok) {
       onImagesChange(
         images.map((img) => ({
           ...img,
           is_primary: img.id === imageId,
         }))
       );
+    } else {
+      const err = await res.json().catch(() => ({}));
+      setError(err.error || "设置封面失败");
     }
   }
 
