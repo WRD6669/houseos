@@ -6,36 +6,38 @@ const SYSTEM_PROMPT = `你是一个专业房地产数据录入助手。你的任
 
 规则：
 1. 只返回 JSON，不要任何解释、Markdown 或代码块标记
-2. 不确定的信息填写空字符串 ""
+2. 不确定的信息填写空字符串 ""，数字填 null
 3. 数字字段只返回数字，不要带单位
 4. 电话保持完整数字
 5. 中文地址不要丢失任何信息
 6. type 字段从以下选择：apartment（公寓）、villa（别墅）、loft（Loft）、cottage（平房）、commercial（商铺）、shop（门店）、office（写字楼）
-7. 户型格式如：三室两厅、2-1-1
-8. listing_type 字段：出租填"rent"，出售填"sale"
-9. 出租时 rent_price 填租金数字，sale_price 填 null；出售时 rent_price 填 null，sale_price 填售价数字（单位：元）
+7. 户型格式如：三室两厅、2-1-1。注意分离室/厅/卫数量
+8. listing_type 字段：出租填"rent"，出售填"sale"。如果第一行是"房屋出租"或提到"出租"则填"rent"，如果是"出售""卖房"则填"sale"
+9. 出租时 rent_price 填租金数字(元)，sale_price 填 null；出售时 rent_price 填 null，sale_price 填售价数字(元)。注意："附36万""售价36万"→sale_price=360000，自动万元乘10000
 10. decoration 字段从以下选择：furnished（精装）、standard（简装）、unfurnished（毛坯）、shell（清水房）
 11. orientation 字段示例：南、北、南北、东南
-12. floor 和 total_floors 填数字，has_elevator 填 true 或 false
+12. floor 和 total_floors 填数字。如果输入"9/28"→floor=9,total_floors=28。has_elevator 填 true 或 false
 13. furniture 字段从以下选择：full（拎包入住）、partial（部分家具）、none（空房）
-14. community 填小区名称
+14. community 填小区名称。"小区名称:XXX"的XXX填community，不要把小区名填到name里
+15. name 填房源标题/楼盘名，不要填小区名
+16. address 填详细地址(楼栋号单元门牌)
 
 返回 JSON 格式：
 {
-  "name": "小区或楼盘名称",
+  "name": "楼盘名称或标题",
   "address": "楼栋号、单元、门牌",
   "type": "apartment",
   "listing_type": "rent",
   "rent_price": 数字或null,
   "sale_price": 数字或null,
   "area": 数字或null,
-  "rooms": "户型描述",
+  "rooms": "户型描述如三室两厅或2-1-1",
   "community": "小区名称",
   "decoration": "furnished",
   "orientation": "南",
   "floor": 数字或null,
   "total_floors": 数字或null,
-  "has_elevator": true,
+  "has_elevator": true或false,
   "furniture": "full",
   "owner_name": "房东姓名",
   "owner_phone": "电话号码",
@@ -127,15 +129,57 @@ export async function POST(request: Request) {
       );
     }
 
+    // Parse rooms string into bedrooms/living_rooms/bathrooms
+    const roomsStr = String(parsed.rooms ?? "");
+    let bedrooms = null;
+    let livingRooms = null;
+    let bathrooms = null;
+    if (roomsStr) {
+      const dashMatch = roomsStr.match(/^(\d+)\s*[-\/]\s*(\d+)\s*[-\/]?\s*(\d*)$/);
+      if (dashMatch) {
+        bedrooms = parseInt(dashMatch[1], 10);
+        livingRooms = parseInt(dashMatch[2], 10);
+        bathrooms = dashMatch[3] ? parseInt(dashMatch[3], 10) : null;
+      } else {
+        const cnNums: Record<string, number> = { "一":1, "二":2, "两":2, "三":3, "四":4, "五":5, "六":6, "七":7, "八":8, "九":9, "十":10 };
+        const cnMatch = roomsStr.match(/((\d|[一二两三四五六七八九十])+)\s*室\s*((\d|[一二两三四五六七八九十])+)?\s*[厅堂]?\s*((\d|[一二两三四五六七八九十])+)?\s*[卫浴]?/);
+        if (cnMatch) {
+          const b = cnMatch[1]; bedrooms = cnNums[b] ?? parseInt(b, 10) ?? null;
+          const l = cnMatch[3]; livingRooms = l ? (cnNums[l] ?? parseInt(l, 10) ?? null) : null;
+          const w = cnMatch[5]; bathrooms = w ? (cnNums[w] ?? parseInt(w, 10) ?? null) : null;
+        }
+      }
+    }
+    var floor = typeof parsed.floor === "number" ? parsed.floor : null;
+    var totalFloors = typeof parsed.total_floors === "number" ? parsed.total_floors : null;
+    if (floor == null && typeof parsed.floor === "string" && parsed.floor.includes("/")) {
+      var parts = parsed.floor.split("/").map(Number);
+      floor = parts[0] || null;
+      totalFloors = parts[1] || null;
+    }
     const property = {
       name: String(parsed.name ?? ""),
       address: String(parsed.address ?? ""),
       type: ["apartment", "villa", "loft", "cottage", "commercial", "shop", "office"].includes(parsed.type)
         ? parsed.type
         : "apartment",
+      listing_type: ["rent", "sale"].includes(parsed.listing_type) ? parsed.listing_type : 
+        (typeof parsed.rent_price === "number" && parsed.rent_price > 0 ? "rent" : 
+         (typeof parsed.sale_price === "number" && parsed.sale_price > 0 ? "sale" : "rent")),
       rent_price: typeof parsed.rent_price === "number" ? parsed.rent_price : null,
+      sale_price: typeof parsed.sale_price === "number" ? parsed.sale_price : null,
       area: typeof parsed.area === "number" ? parsed.area : null,
-      rooms: String(parsed.rooms ?? ""),
+      rooms: roomsStr,
+      bedrooms: bedrooms,
+      living_rooms: livingRooms,
+      bathrooms: bathrooms,
+      community: String(parsed.community ?? ""),
+      decoration: ["furnished", "standard", "unfurnished", "shell"].includes(parsed.decoration) ? parsed.decoration : "",
+      orientation: String(parsed.orientation ?? ""),
+      floor: floor,
+      total_floors: totalFloors,
+      has_elevator: typeof parsed.has_elevator === "boolean" ? parsed.has_elevator : null,
+      furniture: ["full", "partial", "none"].includes(parsed.furniture) ? parsed.furniture : "",
       owner_name: String(parsed.owner_name ?? ""),
       owner_phone: String(parsed.owner_phone ?? "").replace(/[^0-9+\-]/g, ""),
       notes: String(parsed.notes ?? ""),
