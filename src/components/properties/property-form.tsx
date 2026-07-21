@@ -228,6 +228,10 @@ export function PropertyForm({ mode = "add", initialData, propertyId, trigger, o
           }
         }, () => {
           // fallback to initialData
+          // Load existing images for this property
+          supabase.from("property_images").select("*").eq("property_id", propertyId).order("sort_order", { ascending: true }).then(({ data: imgs }) => {
+            if (imgs) setImages(imgs as typeof images);
+          });
           if (initialData) {
             setForm({ ...EMPTY, ...initialData });
           }

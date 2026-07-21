@@ -95,9 +95,17 @@ export function ImageUploader({ propertyId, images, onImagesChange, disabled }: 
   );
 
   async function handleDelete(imageId: string) {
+    const deletedImg = images.find((img) => img.id === imageId);
     const res = await fetch(`/api/images/${imageId}`, { method: "DELETE" });
     if (res.ok) {
-      onImagesChange(images.filter((img) => img.id !== imageId));
+      const remaining = images.filter((img) => img.id !== imageId);
+      // If the deleted image was primary, auto-set the first remaining as primary
+      if (deletedImg?.is_primary && remaining.length > 0) {
+        const supabase = createClient();
+        await supabase.from("property_images").update({ is_primary: true }).eq("id", remaining[0].id);
+        remaining[0] = { ...remaining[0], is_primary: true };
+      }
+      onImagesChange(remaining);
     } else {
       setError("删除失败");
     }

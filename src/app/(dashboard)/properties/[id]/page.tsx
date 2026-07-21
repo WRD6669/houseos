@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { fetchPropertyById, fetchPropertyImages } from "@/lib/supabase/data";
+import { PropertyGallery } from "@/components/properties/property-gallery";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   vacant: { label: "空置", variant: "secondary" },
@@ -94,34 +95,14 @@ export default async function PropertyDetailPage({
         </Button>
       </div>
 
-      {/* ── Image Gallery ────────────────────────────────── */}
+   {/* Image Gallery */}
       {images && images.length > 0 ? (
-        <div className="grid gap-2 rounded-xl overflow-hidden">
-          <div className="aspect-[16/9] bg-muted rounded-lg overflow-hidden">
-            <img
-              src={images.find((i) => i.is_primary)?.url || images[0].url}
-              alt={property.name || ""}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          {images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {images.map((img) => (
-                <img
-                  key={img.id}
-                  src={img.thumbnail_url || img.url}
-                  alt=""
-                  className="size-20 rounded-md object-cover border cursor-pointer hover:opacity-80"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <PropertyGallery images={images} propertyName={property.name || ""} />
       ) : (
         <div className="aspect-[16/9] max-h-[300px] bg-muted rounded-xl flex items-center justify-center text-muted-foreground">
           <div className="text-center">
             <Home className="size-10 mx-auto mb-2 opacity-30" />
-            <span className="text-sm">暂无图片</span>
+            <span className="text-sm">{'暂无图片'}</span>
           </div>
         </div>
       )}
