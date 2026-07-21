@@ -173,8 +173,8 @@ export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails
   const propIds = (data || []).map((p) => p.id);
   const imageMap: Record<string, string> = {};
   if (propIds.length > 0) {
-    const { data: images } = await supabase.from("property_images").select("property_id, url").eq("is_primary", true).in("property_id", propIds);
-    if (images) for (const img of images) imageMap[img.property_id] = img.url;
+    const { data: images } = await supabase.from("property_images").select("property_id, url, is_primary, sort_order").in("property_id", propIds).order("is_primary", { ascending: false }).order("sort_order", { ascending: true });
+    if (images) for (const img of images) { if (!imageMap[img.property_id]) imageMap[img.property_id] = img.url; }
   }
   return { data: (data || []).map((p) => ({ ...p, tenant_name: nm[tm[p.id]] || null, primary_image_url: imageMap[p.id] || null })), error: null };
 }
@@ -196,7 +196,7 @@ export async function fetchPropertyById(id: string): Promise<QueryResult<Propert
     const { data: cust } = await supabase.from("customers").select("name").eq("id", al[0].customer_id).single();
     tenantName = cust?.name ?? null;
   }
-  const { data: piById } = await supabase.from("property_images").select("url").eq("property_id", id).eq("is_primary", true).limit(1).maybeSingle();
+  const { data: piById } = await supabase.from("property_images").select("url, is_primary, sort_order").eq("property_id", id).order("is_primary", { ascending: false }).order("sort_order", { ascending: true }).limit(1).maybeSingle();
   return { data: { ...data, tenant_name: tenantName, primary_image_url: piById?.url ?? null } as PropertyWithDetails, error: null };
 }
 
