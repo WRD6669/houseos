@@ -18,6 +18,8 @@ function mapDecoration(v){const s=v.trim();if(/毛坯|清水/.test(s))return"she
 function mapPropertyType(v){const s=v.trim();if(/别墅|独栋/.test(s))return"villa";if(/复式|loft/i.test(s))return"loft";if(/洋房/.test(s))return"cottage";if(/商铺|店面|门面/.test(s))return"shop";if(/写字楼|办公/.test(s))return"office";if(/商业/.test(s))return"commercial";if(/住宅|公寓|普通住宅|商品房/.test(s))return"apartment";return"apartment"}
 function mapFurniture(v){const s=v.trim();if(/全齐|齐全|家电齐全|拎包入住/.test(s))return"full";if(/部分|基本/.test(s))return"partial";if(/空房|无/.test(s))return"none";return"partial"}
 
+function mapPropertyRights(v){const s=v.trim();if(/???|???|????|??/.test(s))return"owned";if(/??|??|??/.test(s))return"mortgage";if(/??|??/.test(s))return"shared";if(/??|???/.test(s))return"public";if(/??|??/.test(s))return"commercial";if(/??|??/.test(s))return"military";return"other"}
+
 const VISIBLE = ["listing_type","community","area","bedrooms","living_rooms","bathrooms","rent_price","sale_price","floor","total_floors","orientation","decoration","status","payment_method","viewing_method","source","manager"];
 const PREVIEW_LABELS = { name:"名称",address:"地址",area:"面积",rent_price:"月租",sale_price:"售价(万)",listing_type:"交易类型",floor:"楼层",total_floors:"总楼层",orientation:"朝向",decoration:"装修",usage_type:"用途",status:"状态",payment_method:"付款方式",viewing_method:"看房方式",owner_name:"房东",owner_phone:"电话",property_no:"编号",community:"小区",bedrooms:"卧室",living_rooms:"客厅",bathrooms:"卫生间",kitchens:"厨房",balconies:"阳台",source:"来源",manager:"负责人",furniture:"家具",has_elevator:"电梯",heating:"供暖",parking:"车位",year_built:"建造年份",property_rights:"产权",building:"栋",unit_num:"单元",room_number:"门牌",city:"城市",district:"区域",follow_up:"跟进" } as const;
 
@@ -114,7 +116,7 @@ export default function PropertyImportPage() {
               case "heating": r.heating = String(val).trim(); break;
               case "parking": r.parking = String(val).trim(); break;
               case "year_built": r.year_built = extractNumber(val); break;
-              case "property_rights": r.property_rights = String(val).trim(); break;
+              case "property_rights": r.property_rights = mapPropertyRights(String(val)); break;
               case "building": r.building = String(val).trim(); break;
               case "unit_num": r.unit_num = String(val).trim(); break;
               case "room_number": r.room_number = String(val).trim(); break;
