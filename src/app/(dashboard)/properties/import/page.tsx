@@ -85,7 +85,7 @@ export default function PropertyImportPage() {
               case "bathrooms": r.bathrooms = extractNumber(val); break;
               case "kitchens": r.kitchens = extractNumber(val); break;
               case "balconies": r.balconies = extractNumber(val); break;
-              case "rent_price": r.rent_price = extractNumber(val); r.listing_type = r.listing_type || "rent"; break;
+              case "rent_price": r.rent_price = extractNumber(val); if (r.rent_price != null) r.listing_type = r.listing_type || "rent"; break;
               case "sale_price": {
                 console.log("SALE col=\"" + col + "\" val=" + JSON.stringify(val) + " type=" + typeof val);
                 const num = extractNumber(val);
@@ -123,10 +123,10 @@ export default function PropertyImportPage() {
               case "city": r.city = String(val).trim(); break;
               case "district": r.district = String(val).trim(); break;
               case "follow_up": r.follow_up = String(val).trim(); break;
-              case "listing_type": r.listing_type = /售|sale|卖/.test(String(val)) ? "sale" : "rent"; break;
+              case "listing_type": r.listing_type = r.listing_type || (/售|sale|卖/.test(String(val)) ? "sale" : "rent"); break;
             }
           }
-          if (sheetListingType) r.listing_type = r.listing_type || sheetListingType;
+          if (r.sale_price != null && r.sale_price > 0) r.listing_type = "sale"; else if (sheetListingType) r.listing_type = r.listing_type || sheetListingType;
           if (!r.name) r.name = r.community || r.address || "";
           if (!r.name) r._errors.push("missing_name");
           if (!r.address) r.address = r.name;
