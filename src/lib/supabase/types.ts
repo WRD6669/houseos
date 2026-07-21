@@ -17,6 +17,8 @@ export interface Property {
   type: "apartment" | "villa" | "loft" | "cottage" | "commercial" | "shop" | "office";
   status: "vacant" | "occupied" | "sold" | "maintenance" | "pending";
   listing_type: "rent" | "sale";
+  /** @deprecated Use rent_price instead */
+  /** @deprecated */
   rent: number;
   rent_price: number | null;
   sale_price: number | null;
@@ -25,6 +27,7 @@ export interface Property {
   bedrooms?: number;
   bathrooms?: number;
   living_rooms?: number;
+  /** @deprecated Use area instead */
   area_sqft?: number;
   community?: string;
   decoration?: "furnished" | "standard" | "unfurnished" | "shell";
@@ -38,11 +41,27 @@ export interface Property {
   property_rights?: "owned" | "mortgage" | "shared" | "other";
   heating?: "central" | "floor" | "radiator" | "ac" | "none";
   parking?: "yes" | "no" | "shared";
+  /** @deprecated Use rent_price instead */
+  property_no?: string;
+  district?: string;
+  building?: string;
+  unit_num?: string;
+  room_number?: string;
+  usage_type?: string;
+  kitchens?: number;
+  balconies?: number;
+  payment_method?: string;
+  source?: string;
+  manager?: string;
+  follow_up_content?: string;
+  last_follow_up_time?: string;
+  viewing_method?: string;
   owner_name: string | null;
   owner_phone: string | null;
   notes: string | null;
   room_layout: string | null;
   area: number | null;
+  /** @deprecated Use bedrooms/living_rooms/bathrooms instead */
   rooms: number | null;
   created_at: string;
   updated_at: string;
@@ -105,6 +124,7 @@ export interface PropertyWithDetails {
   bedrooms: number | null;
   bathrooms: number | null;
   living_rooms: number | null;
+  /** @deprecated */
   area_sqft: number | null;
   community: string | null;
   decoration: string | null;
@@ -123,6 +143,21 @@ export interface PropertyWithDetails {
   property_rights: string | null;
   heating: string | null;
   parking: string | null;
+  property_no: string | null;
+  district: string | null;
+  building: string | null;
+  unit_num: string | null;
+  room_number: string | null;
+  usage_type: string | null;
+  kitchens: number | null;
+  balconies: number | null;
+  payment_method: string | null;
+  source: string | null;
+  manager: string | null;
+  follow_up_content: string | null;
+  last_follow_up_time: string | null;
+  viewing_method: string | null;
+  primary_image_url: string | null;
   tenant_name: string | null;
   created_at: string;
 }

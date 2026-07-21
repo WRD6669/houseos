@@ -163,13 +163,20 @@ export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails
   const supabase = await getServerClient();
   const { data, error } = await supabase
     .from("properties")
-    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, living_rooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, created_at").order("created_at", { ascending: false });
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, living_rooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, property_no, district, building, unit_num, room_number, usage_type, kitchens, balconies, payment_method, source, manager, follow_up_content, last_follow_up_time, viewing_method, created_at").order("created_at", { ascending: false });
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
   const { data: al } = await supabase.from("leases").select("property_id, customer_id").eq("status", "active");
   const tm: Record<string, string> = {};
   if (al) for (const r of al) tm[r.property_id] = r.customer_id;
   const nm = await fetchIdNames("customers", Object.values(tm));
-  return { data: (data || []).map((p) => ({ ...p, tenant_name: nm[tm[p.id]] || null })), error: null };
+  // Fetch primary images for all properties
+  const propIds = (data || []).map((p) => p.id);
+  const imageMap: Record<string, string> = {};
+  if (propIds.length > 0) {
+    const { data: images } = await supabase.from("property_images").select("property_id, url").eq("is_primary", true).in("property_id", propIds);
+    if (images) for (const img of images) imageMap[img.property_id] = img.url;
+  }
+  return { data: (data || []).map((p) => ({ ...p, tenant_name: nm[tm[p.id]] || null, primary_image_url: imageMap[p.id] || null })), error: null };
 }
 
 
@@ -189,7 +196,8 @@ export async function fetchPropertyById(id: string): Promise<QueryResult<Propert
     const { data: cust } = await supabase.from("customers").select("name").eq("id", al[0].customer_id).single();
     tenantName = cust?.name ?? null;
   }
-  return { data: { ...data, tenant_name: tenantName } as PropertyWithDetails, error: null };
+  const { data: piById } = await supabase.from("property_images").select("url").eq("property_id", id).eq("is_primary", true).limit(1).maybeSingle();
+  return { data: { ...data, tenant_name: tenantName, primary_image_url: piById?.url ?? null } as PropertyWithDetails, error: null };
 }
 
 export async function createProperty(input: {
@@ -206,7 +214,7 @@ export async function createProperty(input: {
     })
     .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, created_at").single();
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
-  return { data: { ...data, tenant_name: null } as PropertyWithDetails, error: null };
+  return { data: { ...data, tenant_name: null, primary_image_url: null } as PropertyWithDetails, error: null };
 }
 
 export async function updateProperty(id: string, input: {
@@ -224,7 +232,7 @@ export async function updateProperty(id: string, input: {
     .eq("id", id)
     .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, created_at").single();
   if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
-  return { data: { ...data, tenant_name: null } as PropertyWithDetails, error: null };
+  return { data: { ...data, tenant_name: null, primary_image_url: null } as PropertyWithDetails, error: null };
 }
 
 export async function deleteProperty(id: string): Promise<QueryResult<null>> {

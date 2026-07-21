@@ -175,7 +175,6 @@ export default function AiTextImportPage() {
     ["total_floors", "总楼层", false, "如：6"],
     ["has_elevator", "电梯", false, "true/false"],
     ["furniture", "家具", false, "full/partial/none"],
-    ["rent_price", "月租 (元)", false, "如：8000"],
     ["area", "面积 (㎡)", false, "如：94"],
     ["rooms", "户型", false, "如：2室1厅"],
     ["owner_name", "房东姓名", false, "如：张先生"],
