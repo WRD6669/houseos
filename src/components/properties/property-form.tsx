@@ -176,10 +176,10 @@ export function PropertyForm({ mode = "add", initialData, propertyId, trigger, o
 
   useEffect(() => {
     if (isEdit) {
-      // Fetch full property data from DB when editing
+      setOpen(true);
       if (propertyId) {
-        setOpen(true);
         const supabase = createClient();
+        // 1. Fetch property data
         supabase.from("properties").select("*").eq("id", propertyId).single().then(({ data }) => {
           if (data) {
             const mapped: Partial<PropertyFormData> = {
@@ -225,19 +225,15 @@ export function PropertyForm({ mode = "add", initialData, propertyId, trigger, o
               notes: data.notes ?? "",
             };
             setForm({ ...EMPTY, ...mapped });
-          }
-        }, () => {
-          // fallback to initialData
-          // Load existing images for this property
-          supabase.from("property_images").select("*").eq("property_id", propertyId).order("sort_order", { ascending: true }).then(({ data: imgs }) => {
-            if (imgs) setImages(imgs as typeof images);
-          });
-          if (initialData) {
+          } else if (initialData) {
             setForm({ ...EMPTY, ...initialData });
           }
         });
+        // 2. Load existing images (runs in parallel, NOT in error callback)
+        supabase.from("property_images").select("*").eq("property_id", propertyId).order("sort_order", { ascending: true }).then(({ data: imgs, error: imgErr }) => {
+          if (!imgErr && imgs) setImages(imgs as typeof images);
+        });
       } else if (initialData) {
-        setOpen(true);
         setForm({ ...EMPTY, ...initialData });
       }
     }
