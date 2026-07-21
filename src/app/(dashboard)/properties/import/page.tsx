@@ -1,4 +1,5 @@
-"use client";
+"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */;
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
@@ -10,17 +11,17 @@ import { createClient } from "@/lib/supabase/client";
 import { ArrowLeft, Check, Loader2, Upload, X, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
-const FIELD_ALIASES = { name:["名称","房源名称","楼盘名称","小区名称","项目名称","标题","name","title"], address:["地址","详细地址","楼盘地址","address","位置"], property_no:["房源编号","编号","房号","property_no","no","id"], listing_type:["交易类型","类型","租售类型","出租/出售"], community:["小区","社区","小区名","楼盘"], area:["面积","建筑面积","使用面积","㎡","m²","area","size"], bedrooms:["室","卧室","房间","几室","bedrooms"], living_rooms:["厅","客厅","几厅","living_rooms","halls"], bathrooms:["卫","卫生间","洗手间","几卫","bathrooms"], kitchens:["厨","厨房","几厨","kitchens"], balconies:["阳台","几阳台","balconies"], rent_price:["租金","月租","房租","月租金","rent","rent_price","月租(元)"], sale_price:["成交价","售价","总价","挂牌价","底价","底价万","出售价格","出售总价","报价","价格","房价","sale_price","售价(万)","售价（万）","总价(万)","总价（万元）","单价","price","sale"], floor:["楼层","所在楼层","floor","current_floor"], total_floors:["总楼层","总层数","total_floors","total"], orientation:["朝向","方向","orientation","direction"], decoration:["装修","装修情况","装修程度","decoration","装修标准"], usage_type:["用途","房屋用途","使用类型","usage_type"], status:["状态","房源状态","status"], payment_method:["付款方式","支付方式","payment_method","付款"], viewing_method:["看房方式","看房","viewing_method"], owner_name:["房东","业主","房东姓名","业主姓名","联系人","owner_name","房主"], owner_phone:["电话","房东电话","业主电话","联系方式","手机","owner_phone","手机号"], notes:["备注","说明","描述","notes","remark","note"], source:["来源","渠道","source"], manager:["负责人","经纪人","经理人","manager"], has_elevator:["电梯","是否有电梯","has_elevator"], furniture:["家具","家具家电","配置","furniture"], heating:["供暖","取暖","heating"], parking:["车位","停车","parking"], year_built:["建造年份","建成年份","建造时间","year_built"], property_rights:["产权","产权性质","property_rights"], building:["栋","楼栋","栋号","building"], unit_num:["单元","unit_num"], room_number:["门牌","房号","门牌号","room_number"], city:["城市","city"], district:["区域","区","行政区","district"], follow_up:["跟进","跟进内容","随访","备注跟进"] };
+const FIELD_ALIASES = { name:["名称","房源名称","项目名称","标题","name","title"], address:["地址","详细地址","楼盘地址","address","位置"], property_no:["房源编号","编号","房号","property_no","no","id"], listing_type:["交易类型","租售类型","出租/出售"], community:["小区","社区","小区名","楼盘","楼盘名称","小区名称"], area:["面积","建筑面积","使用面积","㎡","m²","area","size","面积(㎡)","面积㎡","面积（㎡）"], bedrooms:["室","卧室","房间","几室","bedrooms"], living_rooms:["厅","客厅","几厅","living_rooms","halls"], bathrooms:["卫","卫生间","洗手间","几卫","bathrooms"], kitchens:["厨","厨房","几厨","kitchens"], balconies:["阳台","几阳台","balconies"], rooms:["户型","房型","户型结构"], rent_price:["租金","月租","房租","月租金","rent","rent_price","月租(元)"], sale_price:["成交价","售价","总价","挂牌价","底价","底价万","出售价格","出售总价","报价","价格","房价","sale_price","售价(万)","售价（万）","总价(万)","总价（万元）","单价","price","sale","挂牌价(万)","挂牌价（万）","底价(万)","底价（万）"], floor:["楼层","所在楼层","floor","current_floor"], total_floors:["总楼层","总层数","total_floors","total"], orientation:["朝向","方向","orientation","direction"], decoration:["装修","装修情况","装修程度","decoration","装修标准"], usage_type:["用途","房屋用途","使用类型","usage_type"], status:["状态","房源状态","status"], payment_method:["付款方式","支付方式","payment_method","付款"], viewing_method:["看房方式","看房","viewing_method","钥匙情况"], owner_name:["房东","业主","房东姓名","业主姓名","联系人","owner_name","房主"], owner_phone:["电话","房东电话","业主电话","联系方式","手机","owner_phone","手机号"], notes:["备注","说明","描述","notes","remark","note","录入时间","板块","核心卖点","适合人群","注意事项","类型","证件","跟进状态","标记","盘","业主情况"], source:["来源","渠道","source"], manager:["负责人","经纪人","经理人","manager","员工姓名","录入人","员工"], has_elevator:["电梯","是否有电梯","has_elevator"], furniture:["家具","家具家电","配置","furniture"], heating:["供暖","取暖","heating"], parking:["车位","停车","parking"], year_built:["建造年份","建成年份","建造时间","year_built"], property_rights:["产权","产权性质","property_rights"], building:["栋","楼栋","栋号","building"], unit_num:["单元","unit_num"], room_number:["门牌","房号","门牌号","room_number"], city:["城市","city"], district:["区域","区","行政区","district"], follow_up:["跟进","跟进内容","随访","备注跟进"], last_follow_up_time:["最后跟进时间"] };
 const HEADER_LOOKUP = (()=>{const m=new Map();for(const[k,v]of Object.entries(FIELD_ALIASES)){for(const a of v){const key=a.toLowerCase().trim();if(!m.has(key))m.set(key,k)}}return m})();
-function extractNumber(v){if(v===null||v===undefined||v==="")return null;if(typeof v==="number")return Number.isNaN(v)?null:v;const s=String(v).trim();const n=Number(s);if(!Number.isNaN(n))return n;const m=s.match(/[\d.]+/);return m?Number(m[0]):null}
-function mapStatus(v){const s=v.trim();if(/已出租|租出|已租/.test(s))return"occupied";if(/已售|售出|成交/.test(s))return"sold";if(/维护|修缮|装修中/.test(s))return"maintenance";if(/下架|失效|无效|暂停/.test(s))return"pending";if(/出租|在租|出租中|可租|有效|待租/.test(s))return"vacant";if(/出售|在售|待售|可售/.test(s))return"vacant";return"vacant"}
-function mapDecoration(v){const s=v.trim();if(/毛坯|清水/.test(s))return"shell";if(/精装|精装修|精致|豪华|豪装/.test(s))return"furnished";if(/简装|简单装修|简单/.test(s))return"standard";if(/无装修|无/.test(s))return"unfurnished";return"standard"}
-function mapPropertyType(v){const s=v.trim();if(/别墅|独栋/.test(s))return"villa";if(/复式|loft/i.test(s))return"loft";if(/洋房/.test(s))return"cottage";if(/商铺|店面|门面/.test(s))return"shop";if(/写字楼|办公/.test(s))return"office";if(/商业/.test(s))return"commercial";if(/住宅|公寓|普通住宅|商品房/.test(s))return"apartment";return"apartment"}
-function mapFurniture(v){const s=v.trim();if(/全齐|齐全|家电齐全|拎包入住/.test(s))return"full";if(/部分|基本/.test(s))return"partial";if(/空房|无/.test(s))return"none";return"partial"}
+function extractNumber(v: string|number|null|undefined){if(v===null||v===undefined||v==="")return null;if(typeof v==="number")return Number.isNaN(v)?null:v;const s=String(v).trim();const n=Number(s);if(!Number.isNaN(n))return n;const m=s.match(/[\d.]+/);return m?Number(m[0]):null}
+function mapStatus(v: string){const s=v.trim();if(/已出租|租出|已租|租客住/.test(s))return"occupied";if(/已售|售出|成交/.test(s))return"sold";if(/维护|修缮|装修中/.test(s))return"maintenance";if(/下架|失效|无效|暂停/.test(s))return"pending";if(/自住/.test(s))return"occupied";if(/空置/.test(s))return"vacant";if(/可推广|在售|待售|可售|出售/.test(s))return"vacant";if(/在租|出租中|可租|有效|待租/.test(s))return"vacant";return"vacant"}
+function mapDecoration(v: string){const s=v.trim();if(/毛坯|清水/.test(s))return"shell";if(/精装|精装修|精致|豪华|豪装/.test(s))return"furnished";if(/简装|简单装修|简单/.test(s))return"standard";if(/无装修|无/.test(s))return"unfurnished";return"standard"}
+function mapPropertyType(v: string){const s=v.trim();if(/别墅|独栋/.test(s))return"villa";if(/复式|loft/i.test(s))return"loft";if(/洋房/.test(s))return"cottage";if(/商铺|店面|门面/.test(s))return"shop";if(/写字楼|办公/.test(s))return"office";if(/商业/.test(s))return"commercial";if(/住宅|公寓|普通住宅|商品房/.test(s))return"apartment";return"apartment"}
+function mapFurniture(v: string){const s=v.trim();if(/全齐|齐全|家电齐全|拎包入住/.test(s))return"full";if(/部分|基本/.test(s))return"partial";if(/空房|无/.test(s))return"none";return"partial"}
 
-function mapPropertyRights(v){var s=v.trim();if(s.includes("商品房")||s.includes("产权房")||s.includes("个人产权")||s.includes("独立"))return"owned";if(s.includes("按揭")||s.includes("贷款")||s.includes("抵押"))return"mortgage";if(s.includes("共有")||s.includes("共同"))return"shared";if(s.includes("公房")||s.includes("房改房"))return"public";if(s.includes("商业")||s.includes("商用"))return"commercial";if(s.includes("军产")||s.includes("部队"))return"military";return"other"}
+function mapPropertyRights(v: string){const s=v.trim();if(s.includes("商品房")||s.includes("产权房")||s.includes("个人产权")||s.includes("独立"))return"owned";if(s.includes("按揭")||s.includes("贷款")||s.includes("抵押"))return"mortgage";if(s.includes("共有")||s.includes("共同"))return"shared";if(s.includes("公房")||s.includes("房改房"))return"public";if(s.includes("商业")||s.includes("商用"))return"commercial";if(s.includes("军产")||s.includes("部队"))return"military";return"other"}
 
-const VISIBLE = ["listing_type","community","area","bedrooms","living_rooms","bathrooms","rent_price","sale_price","floor","total_floors","orientation","decoration","status","payment_method","viewing_method","source","manager"];
+const VISIBLE = ["property_no","listing_type","community","building","unit_num","room_number","bedrooms","living_rooms","bathrooms","kitchens","balconies","area","floor","total_floors","orientation","decoration","usage_type","rent_price","sale_price","status","payment_method","viewing_method","property_rights","manager","follow_up","last_follow_up_time"];
 const PREVIEW_LABELS = { name:"名称",address:"地址",area:"面积",rent_price:"月租",sale_price:"售价(万)",listing_type:"交易类型",floor:"楼层",total_floors:"总楼层",orientation:"朝向",decoration:"装修",usage_type:"用途",status:"状态",payment_method:"付款方式",viewing_method:"看房方式",owner_name:"房东",owner_phone:"电话",property_no:"编号",community:"小区",bedrooms:"卧室",living_rooms:"客厅",bathrooms:"卫生间",kitchens:"厨房",balconies:"阳台",source:"来源",manager:"负责人",furniture:"家具",has_elevator:"电梯",heating:"供暖",parking:"车位",year_built:"建造年份",property_rights:"产权",building:"栋",unit_num:"单元",room_number:"门牌",city:"城市",district:"区域",follow_up:"跟进" } as const;
 
 export default function PropertyImportPage() {
@@ -59,7 +60,7 @@ export default function PropertyImportPage() {
       const headers = Array.from(allHeadersSet);
       console.warn("ALL headers:", JSON.stringify(headers));
 
-      const pairs: any[] = [];
+      const pairs: any[] = []; for (const h of headers) console.log("COLUMN MAP", JSON.stringify({ excel:h, field:HEADER_LOOKUP.get(h.toLowerCase().trim())||"(unmapped)" }));
       for (const h of headers) { const f = HEADER_LOOKUP.get(h.toLowerCase().trim()); if (f) { pairs.push({ col: h, field: f }); console.log("Mapped: \"" + h + "\" -> " + f); } else console.log("UNMAPPED: \"" + h + "\""); }
       const fieldMap = new Map<string,string>();
       for (const p of pairs) fieldMap.set(p.col, p.field);
@@ -69,7 +70,7 @@ export default function PropertyImportPage() {
       for (const sh of allSheets) {
         const sheetListingType = sh.listingType || "rent";
         for (const row of sh.rows) {
-          const r: any = { name: "", type: null, address: "", area: null, listing_type: null, community: null, bedrooms: null, living_rooms: null, bathrooms: null, kitchens: null, balconies: null, rent_price: null, sale_price: null, _sale_price_source: null, floor: null, total_floors: null, orientation: null, decoration: null, usage_type: null, status: null, payment_method: null, viewing_method: null, owner_name: null, owner_phone: null, notes: null, source: null, manager: null, has_elevator: null, furniture: null, heating: null, parking: null, year_built: null, property_rights: null, building: null, unit_num: null, room_number: null, city: null, district: null, follow_up: null, _errors: [] };
+          const r: any = { name: "", type: null, address: "", area: null, listing_type: null, community: null, bedrooms: null, living_rooms: null, bathrooms: null, kitchens: null, balconies: null, rooms: null, rent_price: null, sale_price: null, _sale_price_source: null, floor: null, total_floors: null, orientation: null, decoration: null, usage_type: null, status: null, payment_method: null, viewing_method: null, owner_name: null, owner_phone: null, notes: null, source: null, manager: null, has_elevator: null, furniture: null, heating: null, parking: null, year_built: null, property_rights: null, building: null, unit_num: null, room_number: null, city: null, district: null, follow_up: null, last_follow_up_time: null, _errors: [] };
           for (const [col, field] of fieldMap) {
             const val = row[col];
             if (val === null || val === undefined || val === "") continue;
@@ -91,7 +92,7 @@ export default function PropertyImportPage() {
                 const num = extractNumber(val);
                 if (num !== null && num > 0) {
                   const isWan = /万/.test(col) || (typeof val === "string" && /万/.test(val));
-                  r.sale_price = isWan ? num * 10000 : num;
+                  if (r.sale_price == null) { r.sale_price = isWan ? num * 10000 : num; }
                   r._sale_price_source = col;
                   console.log("SALE FINAL=" + r.sale_price + " isWan=" + isWan);
                 } else { console.warn("SALE SKIP: num=" + num + " col=" + col); }
@@ -108,7 +109,7 @@ export default function PropertyImportPage() {
               case "viewing_method": r.viewing_method = String(val).trim(); break;
               case "owner_name": r.owner_name = String(val).trim() || null; break;
               case "owner_phone": r.owner_phone = String(val).trim() || null; break;
-              case "notes": r.notes = String(val).trim() || null; break;
+              case "notes": { const nv = String(val).trim(); if (nv) { r.notes = r.notes ? r.notes + " | " + col + ": " + nv : col + ": " + nv; } } break;
               case "source": r.source = String(val).trim(); break;
               case "manager": r.manager = String(val).trim(); break;
               case "has_elevator": { const sv = String(val).trim().toLowerCase(); r.has_elevator = /是|有|yes|true/.test(sv); break; }
@@ -122,6 +123,8 @@ export default function PropertyImportPage() {
               case "room_number": r.room_number = String(val).trim(); break;
               case "city": r.city = String(val).trim(); break;
               case "district": r.district = String(val).trim(); break;
+              case "rooms": { const rv = String(val).trim(); r.rooms = rv; const dm = rv.match(/^(\d+)\s*[-\/]\s*(\d+)\s*[-\/]?\s*(\d*)$/); if (dm) { r.bedrooms = r.bedrooms || parseInt(dm[1],10); r.living_rooms = r.living_rooms || parseInt(dm[2],10); if (dm[3]) r.bathrooms = r.bathrooms || parseInt(dm[3],10); } else { const cn: Record<string,number> = {一:1,二:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9,十:10}; const cm = rv.match(/((\d|[一二两三四五六七八九十])+)\s*室\s*((\d|[一二两三四五六七八九十])+)?\s*[厅堂]?\s*((\d|[一二两三四五六七八九十])+)?\s*[卫浴]?/); if (cm) { const b = cm[1]; r.bedrooms = r.bedrooms || (cn[b] ?? parseInt(b,10) ?? null); if (cm[3]) r.living_rooms = r.living_rooms || (cn[cm[3]] ?? parseInt(cm[3],10) ?? null); if (cm[5]) r.bathrooms = r.bathrooms || (cn[cm[5]] ?? parseInt(cm[5],10) ?? null); } } } break;
+              case "last_follow_up_time": { try { r.last_follow_up_time = new Date(String(val)).toISOString(); } catch(e) { r.last_follow_up_time = String(val).trim(); } break; }
               case "follow_up": r.follow_up = String(val).trim(); break;
               case "listing_type": r.listing_type = r.listing_type || (/售|sale|卖/.test(String(val)) ? "sale" : "rent"); break;
             }
@@ -152,7 +155,7 @@ export default function PropertyImportPage() {
         name: r.name, address: r.address,
         listing_type: r.listing_type || "rent",
         status: r.status || "vacant",
-        type: r.type ? mapPropertyType(r.type) : "apartment",
+        type: r.type ? mapPropertyType(String(r.type)) : "apartment",
         rent: r.listing_type === "sale" ? 0 : (r.rent_price || 0),
       };
       if (r.area != null) payload.area = r.area;
@@ -163,6 +166,7 @@ export default function PropertyImportPage() {
       if (r.bathrooms != null) payload.bathrooms = r.bathrooms;
       if (r.kitchens != null) payload.kitchens = r.kitchens;
       if (r.balconies != null) payload.balconies = r.balconies;
+      if (r.rooms) payload.rooms = r.rooms;
       if (r.floor != null) payload.floor = r.floor;
       if (r.total_floors != null) payload.total_floors = r.total_floors;
       if (r.orientation) payload.orientation = r.orientation;
@@ -187,6 +191,7 @@ export default function PropertyImportPage() {
       if (r.city) payload.city = r.city; else payload.city = "兰州";
       if (r.district) payload.district = r.district;
       if (r.follow_up) payload.follow_up = r.follow_up;
+      if (r.last_follow_up_time) payload.last_follow_up_time = r.last_follow_up_time;
       if (r.property_no) payload.property_no = r.property_no;
       if (r.community) payload.community = r.community;
 

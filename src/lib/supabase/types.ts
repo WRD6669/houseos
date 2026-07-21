@@ -1,4 +1,4 @@
-﻿export interface Customer {
+export interface Customer {
   id: string;
   name: string;
   email: string | null;
@@ -38,7 +38,7 @@ export interface Property {
   furniture?: "full" | "partial" | "none";
 
   year_built?: number;
-  property_rights?: "owned" | "mortgage" | "shared" | "other";
+  property_rights?: "owned" | "mortgage" | "shared" | "other" | "public" | "commercial" | "military";
   heating?: "central" | "floor" | "radiator" | "ac" | "none";
   parking?: "yes" | "no" | "shared";
   /** @deprecated Use rent_price instead */

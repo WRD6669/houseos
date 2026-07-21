@@ -216,6 +216,14 @@ export default async function PropertyDetailPage({
       </div>
 
       {/* Follow-up content */}
+      {property.follow_up && (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">??</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-sm whitespace-pre-wrap">{property.follow_up}</p>
+          </CardContent>
+        </Card>
+      )}
       {property.follow_up_content && (
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-base">跟进记录</CardTitle></CardHeader>

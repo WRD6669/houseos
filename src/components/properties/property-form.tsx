@@ -27,7 +27,7 @@ interface PropertyFormData {
   payment_method: string; property_rights: string;
   heating: string; parking: string;
   owner_name: string; owner_phone: string;
-  follow_up_content: string; last_follow_up_time: string; viewing_method: string;
+  follow_up: string; follow_up_content: string; last_follow_up_time: string; viewing_method: string;
   notes: string;
 }
 
@@ -66,7 +66,7 @@ const EMPTY: PropertyFormData = {
   payment_method: "", property_rights: "",
   heating: "", parking: "",
   owner_name: "", owner_phone: "",
-  follow_up_content: "", last_follow_up_time: "", viewing_method: "",
+  follow_up: "", follow_up_content: "", last_follow_up_time: "", viewing_method: "",
   notes: "",
 };
 
@@ -219,7 +219,7 @@ export function PropertyForm({ mode = "add", initialData, propertyId, trigger, o
               parking: data.parking ?? "",
               owner_name: data.owner_name ?? "",
               owner_phone: data.owner_phone ?? "",
-              follow_up_content: data.follow_up_content ?? "",
+              follow_up: data.follow_up ?? "", follow_up_content: data.follow_up_content ?? "",
               last_follow_up_time: data.last_follow_up_time ?? "",
               viewing_method: data.viewing_method ?? "",
               notes: data.notes ?? "",
@@ -302,7 +302,7 @@ export function PropertyForm({ mode = "add", initialData, propertyId, trigger, o
       parking: form.parking || null,
       owner_name: form.owner_name.trim() || null,
       owner_phone: form.owner_phone.trim() || null,
-      follow_up_content: form.follow_up_content.trim() || null,
+      follow_up: form.follow_up_content.trim() || null, follow_up_content: form.follow_up_content.trim() || null,
       last_follow_up_time: form.last_follow_up_time || null,
       viewing_method: form.viewing_method || null,
       notes: form.notes.trim() || null,

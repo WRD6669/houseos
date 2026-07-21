@@ -133,14 +133,21 @@ export async function POST(request: Request) {
       );
     }
 
-    var building = "";
-    var unitNum = "";
-    var roomNum = "";
-    var viewMethod = "";
+    let building = "";
+    let unitNum = "";
+    let roomNum = "";
+    let viewMethod = "";
     if (parsed.building != null) building = String(parsed.building);
     if (parsed.unit_num != null) unitNum = String(parsed.unit_num);
     if (parsed.room_number != null) roomNum = String(parsed.room_number);
     if (parsed.viewing_method != null) viewMethod = String(parsed.viewing_method);
+    // Fallback: extract viewing_method from text/notes when AI does not set it
+    if (!viewMethod) {
+      const textToCheck = String(parsed.notes ?? "") + " " + text;
+      if (/有钥匙|钥匙在|密码锁|密码\d/.test(textToCheck)) viewMethod = "key";
+      else if (/随时看房|随时/.test(textToCheck)) viewMethod = "anytime";
+      else if (/预约看房|预约/.test(textToCheck)) viewMethod = "appointment";
+    }
     if (!building) {
       const addrStr = String(parsed.address ?? "");
       const dashAddr = addrStr.match(/^(\d+)\\s*[-]\\s*(\d+)\\s*[-]\\s*(\d+[A-Za-z]*)$/);
@@ -168,10 +175,10 @@ export async function POST(request: Request) {
         }
       }
     }
-    var floor = typeof parsed.floor === "number" ? parsed.floor : null;
-    var totalFloors = typeof parsed.total_floors === "number" ? parsed.total_floors : null;
+    let floor = typeof parsed.floor === "number" ? parsed.floor : null;
+    let totalFloors = typeof parsed.total_floors === "number" ? parsed.total_floors : null;
     if (floor == null && typeof parsed.floor === "string" && parsed.floor.includes("/")) {
-      var parts = parsed.floor.split("/").map(Number);
+      const parts = parsed.floor.split("/").map(Number);
       floor = parts[0] || null;
       totalFloors = parts[1] || null;
     }
@@ -182,8 +189,10 @@ export async function POST(request: Request) {
         ? parsed.type
         : "apartment",
       listing_type: ["rent", "sale"].includes(parsed.listing_type) ? parsed.listing_type : 
+        // rent_price > 0 always means rent; sale_price > 0 only means sale when no rent_price
         (typeof parsed.rent_price === "number" && parsed.rent_price > 0 ? "rent" : 
-         (typeof parsed.sale_price === "number" && parsed.sale_price > 0 ? "sale" : "rent")),
+         (typeof parsed.sale_price === "number" && parsed.sale_price > 0 && 
+          (typeof parsed.rent_price !== "number" || parsed.rent_price <= 0) ? "sale" : "rent")),
       rent_price: typeof parsed.rent_price === "number" ? parsed.rent_price : null,
       sale_price: typeof parsed.sale_price === "number" ? parsed.sale_price : null,
       area: typeof parsed.area === "number" ? parsed.area : null,
@@ -202,10 +211,39 @@ export async function POST(request: Request) {
       unit_num: unitNum,
       room_number: roomNum,
       viewing_method: viewMethod,
+      kitchens: 1,
+      balconies: 0,
+      status: "vacant",
       owner_name: String(parsed.owner_name ?? ""),
       owner_phone: String(parsed.owner_phone ?? "").replace(/[^0-9+\-]/g, ""),
       notes: String(parsed.notes ?? ""),
     };
+
+    // Safety: if listing_type is rent, force sale_price to null
+    // (prevents "?36" in rental listings from being misinterpreted as sale price)
+    if (property.listing_type === "rent" && property.sale_price != null) {
+      // Move the would-be sale price info to notes if not already there
+      const saleNote = "?" + (property.sale_price >= 10000 ? (property.sale_price / 10000) + "?" : property.sale_price);
+      if (!property.notes.includes(saleNote) && !property.notes.includes("?")) {
+        property.notes = property.notes ? property.notes + " " + saleNote : saleNote;
+      }
+      property.sale_price = null;
+    }
+
+    // Fallback: generate name from community + building/unit_num/room_number
+    if (!property.name) {
+      let generated = property.community || "";
+      const bld = building || property.building || "";
+      const un = unitNum || property.unit_num || "";
+      const rn = roomNum || property.room_number || "";
+      if (bld && un && rn) {
+        generated += (generated ? " " : "") + bld + "-" + un + "-" + rn;
+      } else if (bld) {
+        generated += (generated ? " " : "") + bld;
+      }
+      if (!generated && property.address) generated = property.address;
+      property.name = generated || text.trim() || "?????";
+    }
 
     return NextResponse.json(property);
   } catch (error) {

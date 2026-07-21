@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,9 @@ const TYPE_MAP: Record<string, string> = {
   commercial: "商铺", shop: "门店", office: "写字楼",
 };
 
+const DECORATION_MAP: Record<string, string> = { furnished: "精装", standard: "简装", unfurnished: "毛坯", shell: "清水房" };
+const RIGHTS_MAP: Record<string, string> = { owned: "独立产权", mortgage: "按揭", shared: "共有", other: "其他", public: "公房", commercial: "商用", military: "军产" };
+const VIEWING_MAP: Record<string, string> = { anytime: "随时", appointment: "预约", weekend: "周末", key: "密码锁/钥匙" };
 const LISTING_LABEL: Record<string, string> = { rent: "出租", sale: "出售" };
 
 type FilterState = {
@@ -265,16 +268,16 @@ export function PropertiesTable({ initialData }: Props) {
                         {allFilteredSelected ? <CheckSquare className="size-4 text-primary" /> : <Square className="size-4 text-muted-foreground" />}
                       </button>
                     </TableHead>
-                    <TableHead className="w-14">图片</TableHead>
+                    <TableHead className="text-xs">编号</TableHead><TableHead className="w-14">图片</TableHead>
                     <TableHead>房源</TableHead>
                     <TableHead>小区</TableHead>
-                    <TableHead>类型</TableHead>
+                    <TableHead className="text-xs">栋</TableHead><TableHead className="text-xs">单元</TableHead><TableHead className="text-xs">门牌</TableHead><TableHead>类型</TableHead>
                     <TableHead>状态</TableHead>
                     <TableHead>交易</TableHead>
                     <TableHead>价格</TableHead>
-                    <TableHead>户型</TableHead>
+                    <TableHead>室</TableHead><TableHead>厅</TableHead><TableHead>卫</TableHead><TableHead className="text-xs">厨</TableHead><TableHead className="text-xs">阳台</TableHead>
                     <TableHead>面积</TableHead>
-                    <TableHead>楼层</TableHead>
+                    <TableHead className="text-xs">朝向</TableHead><TableHead className="text-xs">装修</TableHead><TableHead className="text-xs">用途</TableHead><TableHead className="text-xs">产权</TableHead><TableHead className="text-xs">看房</TableHead><TableHead className="text-xs">跟进</TableHead><TableHead className="text-xs">负责人</TableHead><TableHead className="text-xs">最后跟进</TableHead><TableHead>楼层</TableHead>
                     <TableHead className="w-24">操作</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -289,7 +292,7 @@ export function PropertiesTable({ initialData }: Props) {
                             {isSelected ? <CheckSquare className="size-4 text-primary" /> : <Square className="size-4 text-muted-foreground" />}
                           </button>
                         </TableCell>
-                        <TableCell className="w-14 p-1">
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.property_no ?? "—"}</TableCell><TableCell className="w-14 p-1">
                           {property.primary_image_url ? (
                             <img src={property.primary_image_url} alt="" className="size-12 rounded object-cover" />
                           ) : (
@@ -302,14 +305,14 @@ export function PropertiesTable({ initialData }: Props) {
                           <Link href={`/properties/${property.id}`} className="font-medium text-sm text-primary hover:underline">{property.name}</Link>
                           <div className="text-xs text-muted-foreground max-w-[180px] truncate">{property.address}</div>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{property.community ?? "—"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{property.community ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.building ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.unit_num ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.room_number ?? "—"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{TYPE_MAP[property.type] ?? property.type}</TableCell>
                         <TableCell><Badge variant={status.variant} className="text-xs">{status.label}</Badge></TableCell>
                         <TableCell className="text-sm">{LISTING_LABEL[property.listing_type] ?? property.listing_type}</TableCell>
                         <TableCell className="text-sm font-medium">{formatPrice(property)}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{roomLabel(property)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.bedrooms ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.living_rooms ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.bathrooms ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.kitchens ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.balconies ?? "—"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{property.area != null ? property.area + "㎡" : "—"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{floorLabel(property)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.orientation ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{DECORATION_MAP[property.decoration ?? ""] ?? property.decoration ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.usage_type ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{RIGHTS_MAP[property.property_rights ?? ""] ?? property.property_rights ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{VIEWING_MAP[property.viewing_method ?? ""] ?? property.viewing_method ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground max-w-[100px] truncate">{property.follow_up ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.manager ?? "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{property.last_follow_up_time ? new Date(property.last_follow_up_time).toLocaleDateString("zh-CN") : "—"}</TableCell><TableCell className="text-xs text-muted-foreground whitespace-nowrap">{floorLabel(property)}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button variant="ghost" size="icon" title="编辑" onClick={() => setEditTarget(property)}><Pencil className="size-4 text-muted-foreground hover:text-primary" /></Button>
