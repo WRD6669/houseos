@@ -20,6 +20,10 @@ const SYSTEM_PROMPT = `你是一个专业房地产数据录入助手。你的任
 13. furniture 字段从以下选择：full（拎包入住）、partial（部分家具）、none（空房）
 14. community 填小区名称。"小区名称:XXX"的XXX填community，不要把小区名填到name里
 15. name 填房源标题/楼盘名，不要填小区名
+16. address。楼号"2-3-901"→address="2-3-901",building=2,unit_num=3,room_number=901
+17. building填栋号,unit_num填单元号,room_number填门牌号
+18. viewing_method："随时看房"→"anytime","预约看房"→"appointment","有钥匙"/"密码锁"→"key"
+19. 租房"附36万"→放notes,出售房"附XX万"→sale_price=XX*10000
 16. address 填详细地址(楼栋号单元门牌)
 
 返回 JSON 格式：
@@ -129,6 +133,20 @@ export async function POST(request: Request) {
       );
     }
 
+    var building = "";
+    var unitNum = "";
+    var roomNum = "";
+    var viewMethod = "";
+    if (parsed.building != null) building = String(parsed.building);
+    if (parsed.unit_num != null) unitNum = String(parsed.unit_num);
+    if (parsed.room_number != null) roomNum = String(parsed.room_number);
+    if (parsed.viewing_method != null) viewMethod = String(parsed.viewing_method);
+    if (!building) {
+      const addrStr = String(parsed.address ?? "");
+      const dashAddr = addrStr.match(/^(\d+)\\s*[-]\\s*(\d+)\\s*[-]\\s*(\d+[A-Za-z]*)$/);
+      if (dashAddr) { building = dashAddr[1]; unitNum = dashAddr[2]; roomNum = dashAddr[3]; }
+    }
+
     // Parse rooms string into bedrooms/living_rooms/bathrooms
     const roomsStr = String(parsed.rooms ?? "");
     let bedrooms = null;
@@ -180,6 +198,10 @@ export async function POST(request: Request) {
       total_floors: totalFloors,
       has_elevator: typeof parsed.has_elevator === "boolean" ? parsed.has_elevator : null,
       furniture: ["full", "partial", "none"].includes(parsed.furniture) ? parsed.furniture : "",
+      building: building,
+      unit_num: unitNum,
+      room_number: roomNum,
+      viewing_method: viewMethod,
       owner_name: String(parsed.owner_name ?? ""),
       owner_phone: String(parsed.owner_phone ?? "").replace(/[^0-9+\-]/g, ""),
       notes: String(parsed.notes ?? ""),
