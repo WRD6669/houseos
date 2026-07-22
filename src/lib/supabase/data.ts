@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { CustomerWithPropertyCount, PropertyWithDetails, LeaseWithDetails, PropertyImage } from "./types";
+import type { CustomerWithPropertyCount, CustomerFollowUp, CustomerProperty, PropertyWithDetails, LeaseWithDetails, PropertyImage } from "./types";
 
 async function getServerClient() {
   const cookieStore = await cookies();
@@ -47,6 +47,14 @@ export interface DashboardStats {
   vacantCount: number;
   occupancyRate: number;
   totalMonthlyRent: number;
+  newCustomersToday: number;
+  pendingFollowUps: number;
+  viewingCount: number;
+  dealCount: number;
+  todayViewings: number;
+  monthlyDeals: number;
+  monthlyCommission: number;
+  recentProperties: { id: string; name: string; community: string | null; area: number | null; rent_price: number | null; sale_price: number | null; listing_type: string; status: string; }[];
   recentActivity: { action: string; target: string; time: string }[];
 }
 
@@ -62,45 +70,6 @@ function formatRelativeTime(iso: string): string {
   return new Date(iso).toISOString().slice(0, 10);
 }
 
-export async function fetchDashboardStats(): Promise<QueryResult<DashboardStats>> {
-  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
-  const supabase = await getServerClient();
-
-  const { count: customerCount, error: cErr } = await supabase.from("customers").select("*", { count: "exact", head: true });
-  if (cErr) return { data: null, error: cErr.message };
-
-  const { data: props, error: pErr } = await supabase.from("properties").select("status, rent, rent_price, name, created_at").order("created_at", { ascending: false });
-  if (pErr) return { data: null, error: pErr.code === "42P01" ? "TABLES_NOT_FOUND" : pErr.message };
-
-  const propertyCount = props?.length ?? 0;
-  const occupied = props?.filter((p: { status: string }) => p.status === "occupied").length ?? 0;
-  const vacant = props?.filter((p: { status: string }) => p.status === "vacant").length ?? 0;
-  const occupancyRate = propertyCount > 0 ? Math.round((occupied / propertyCount) * 100) : 0;
-
-  const { data: activeLeases, error: lErr } = await supabase.from("leases").select("monthly_rent, customer_id, property_id, created_at").eq("status", "active");
-  if (lErr) return { data: null, error: lErr.code === "42P01" ? "TABLES_NOT_FOUND" : lErr.message };
-  const totalMonthlyRent = (activeLeases ?? []).reduce((sum: number, l: { monthly_rent: number }) => sum + (l.monthly_rent ?? 0), 0);
-
-  const recent: { action: string; target: string; time: string }[] = [];
-
-  const { data: recentCustomers } = await supabase.from("customers").select("name, created_at").order("created_at", { ascending: false }).limit(3);
-  if (recentCustomers) for (const c of recentCustomers as { name: string; created_at: string }[]) recent.push({ action: "新增客户", target: c.name, time: c.created_at });
-
-  const { data: recentProps } = await supabase.from("properties").select("name, created_at").order("created_at", { ascending: false }).limit(3);
-  if (recentProps) for (const p of recentProps as { name: string; created_at: string }[]) recent.push({ action: "新增房源", target: p.name, time: p.created_at });
-
-  const { data: recentLeases } = await supabase.from("leases").select("created_at").order("created_at", { ascending: false }).limit(3);
-  if (recentLeases) for (const l of recentLeases as { created_at: string }[]) recent.push({ action: "新签租约", target: "", time: l.created_at });
-
-  recent.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-  const recentActivity = recent.slice(0, 6).map((r) => ({ ...r, time: formatRelativeTime(r.time) }));
-
-  return {
-    data: { customerCount: customerCount ?? 0, propertyCount, occupiedCount: occupied, vacantCount: vacant, occupancyRate, totalMonthlyRent, recentActivity },
-    error: null,
-  };
-}
-
 // 闂佸啿鍘滈崑鎾绘煃閸忓浜?Customers 闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑?
 export async function fetchCustomers(): Promise<QueryResult<CustomerWithPropertyCount[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -113,7 +82,7 @@ export async function fetchCustomers(): Promise<QueryResult<CustomerWithProperty
   const { data: lc } = await supabase.from("leases").select("customer_id").in("status", ["active", "expired"]);
   const cm: Record<string, number> = {};
   if (lc) for (const r of lc) cm[r.customer_id] = (cm[r.customer_id] || 0) + 1;
-  return { data: (data || []).map((c) => ({ ...c, property_count: cm[c.id] || 0 })), error: null };
+    return { data: (data || []).map((c) => ({ ...c, property_count: cm[c.id] || 0 } as CustomerWithPropertyCount)), error: null };
 }
 
 export async function createCustomer(input: {
@@ -157,6 +126,224 @@ export async function deleteCustomer(id: string): Promise<QueryResult<null>> {
 }
 
 // 闂佸啿鍘滈崑鎾绘煃閸忓浜?Properties 闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕闂佸啿鍘滈崑鎾绘煃閸忓浜鹃梺鍐插帨閸嬫捇鏌嶉崗澶婁壕
+
+
+// ============================================================
+// Customer Detail (CRM extended)
+// ============================================================
+
+export async function fetchCustomerById(id: string): Promise<QueryResult<CustomerWithPropertyCount & { follow_ups?: CustomerFollowUp[] }>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("id, name, email, phone, wechat, id_card, notes, status, customer_type, budget_min, budget_max, target_city, target_district, target_community, property_type_pref, bedrooms_pref, area_min, area_max, source, manager, last_follow_up_time, created_at")
+    .eq("id", id)
+    .single();
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  const { count: pc } = await supabase.from("customer_properties").select("*", { count: "exact", head: true }).eq("customer_id", id);
+  const { data: fups } = await supabase.from("customer_follow_ups").select("*").eq("customer_id", id).order("created_at", { ascending: false });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return { data: { ...data, property_count: pc ?? 0, follow_ups: fups ?? [] } as any, error: null };
+}
+
+export async function matchPropertiesForCustomer(customerId: string): Promise<QueryResult<(PropertyWithDetails & { _matchScore: number; _matchReasons: string[] })[]>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data: cust } = await supabase.from("customers").select("*").eq("id", customerId).single();
+  if (!cust) return { data: [], error: null };
+
+  // Build listing_type filter based on customer_type
+  let listingFilter: string[] = ["rent", "sale"];
+  if (cust.customer_type === "renter") listingFilter = ["rent"];
+  else if (cust.customer_type === "buyer") listingFilter = ["sale"];
+
+  const { data: props } = await supabase
+    .from("properties")
+    .select("id, name, type, status, rent, city, address, bedrooms, bathrooms, living_rooms, area_sqft, listing_type, rent_price, sale_price, community, decoration, orientation, floor, total_floors, has_elevator, furniture, owner_name, owner_phone, notes, room_layout, area, rooms, year_built, property_rights, heating, parking, property_no, district, building, unit_num, room_number, usage_type, kitchens, balconies, payment_method, source, manager, follow_up_content, follow_up, last_follow_up_time, viewing_method, created_at")
+    .in("status", ["vacant"])
+    .in("listing_type", listingFilter);
+
+  if (!props || props.length === 0) return { data: [], error: null };
+
+  const MAX_SCORE = 25 + 25 + 20 + 15 + 10 + 5; // 100
+
+  const scored = props.map((p) => {
+    let score = 0;
+    const reasons: string[] = [];
+
+    // Region match (25 points): city + district
+    let regionScore = 0;
+    if (cust.target_city && p.city === cust.target_city) { regionScore += 12; reasons.push("城市一致"); }
+    else if (cust.target_city) regionScore += 5; // partial credit for any city match attempt
+    if (cust.target_district && p.district === cust.target_district) { regionScore += 13; reasons.push("区域一致"); }
+    score += regionScore;
+
+    // Budget match (25 points)
+    const price = p.listing_type === "rent" ? (p.rent_price ?? p.rent) : p.sale_price;
+    let budgetScore = 0;
+    if (price && cust.budget_min != null && cust.budget_max != null) {
+      if (price >= cust.budget_min && price <= cust.budget_max) {
+        budgetScore = 25;
+        reasons.push("价格符合预算");
+      } else if (price >= cust.budget_min * 0.8 && price <= cust.budget_max * 1.2) {
+        budgetScore = 12;
+        reasons.push("价格接近预算");
+      }
+    }
+    score += budgetScore;
+
+    // Bedrooms match (20 points)
+    let roomScore = 0;
+    if (cust.bedrooms_pref != null && p.bedrooms != null) {
+      if (p.bedrooms === cust.bedrooms_pref) { roomScore = 20; reasons.push("户型匹配"); }
+      else if (Math.abs(p.bedrooms - cust.bedrooms_pref) <= 1) { roomScore = 10; reasons.push("户型接近"); }
+    }
+    score += roomScore;
+
+    // Area match (15 points)
+    let areaScore = 0;
+    const area = p.area ?? p.area_sqft;
+    if (area && cust.area_min != null && cust.area_max != null) {
+      if (area >= cust.area_min && area <= cust.area_max) { areaScore = 15; reasons.push("面积符合"); }
+      else if (area >= cust.area_min * 0.8 && area <= cust.area_max * 1.2) { areaScore = 7; reasons.push("面积接近"); }
+    }
+    score += areaScore;
+
+    // Listing type match (10 points) - already hard-filtered, but reward matching
+    score += 10;
+    reasons.push(p.listing_type === "rent" ? "租房类型匹配" : "售房类型匹配");
+
+    // Property type preference match (5 points)
+    let typeScore = 0;
+    if (cust.property_type_pref && p.type === cust.property_type_pref) {
+      typeScore = 5;
+      reasons.push("房屋类型匹配");
+    }
+    score += typeScore;
+
+    const matchPercent = Math.min(100, Math.round((score / MAX_SCORE) * 100));
+
+    return { ...p, _matchScore: matchPercent, _matchReasons: reasons } as (PropertyWithDetails & { _matchScore: number; _matchReasons: string[] });
+  });
+
+  scored.sort((a, b) => b._matchScore - a._matchScore);
+  return { data: scored as (PropertyWithDetails & { _matchScore: number; _matchReasons: string[] })[], error: null };
+}
+
+export async function createCustomerProperty(input: { customer_id: string; property_id: string; relation_type: string; notes?: string | null }): Promise<QueryResult<CustomerProperty>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("customer_properties")
+    .insert({ customer_id: input.customer_id, property_id: input.property_id, relation_type: input.relation_type, status: "active", notes: input.notes || null })
+    .select("*")
+    .single();
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  return { data: data, error: null };
+}
+
+export async function fetchCustomerFollowUps(customerId: string): Promise<QueryResult<CustomerFollowUp[]>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("customer_follow_ups")
+    .select("*")
+    .eq("customer_id", customerId)
+    .order("created_at", { ascending: false });
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  return { data: data, error: null };
+}
+
+export async function createCustomerFollowUp(input: { customer_id: string; content: string; follow_up_type?: string; manager?: string | null; scheduled_at?: string | null; result?: string; property_id?: string | null }): Promise<QueryResult<CustomerFollowUp>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+  const { data, error } = await supabase
+    .from("customer_follow_ups")
+    .insert({ customer_id: input.customer_id, content: input.content, follow_up_type: input.follow_up_type || "other", manager: input.manager || null, scheduled_at: input.scheduled_at || null, result: input.result || "pending", property_id: input.property_id || null })
+    .select("*")
+    .single();
+  if (error) return { data: null, error: error.code === "42P01" || error.message?.includes("does not exist") ? "TABLES_NOT_FOUND" : error.message };
+  await supabase.from("customers").update({ last_follow_up_time: new Date().toISOString() }).eq("id", input.customer_id);
+  return { data: data, error: null };
+}
+
+
+
+// ============================================================
+// Deal Closing - One-click flow
+// ============================================================
+
+export async function completeDeal(input: {
+  customer_id: string;
+  property_id: string;
+  deal_price: number;
+  deal_date?: string;
+  commission?: number | null;
+  notes?: string | null;
+}): Promise<QueryResult<{ customer: CustomerWithPropertyCount | null; property: PropertyWithDetails | null; relation: CustomerProperty | null }>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+
+  // 1. Get customer + property info to determine deal type
+  const { data: cust } = await supabase.from("customers").select("*").eq("id", input.customer_id).single();
+  const { data: prop } = await supabase.from("properties").select("*").eq("id", input.property_id).single();
+  if (!cust || !prop) return { data: null, error: "Customer or property not found" };
+
+  const isRent = prop.listing_type === "rent";
+  const dealDate = input.deal_date || new Date().toISOString();
+
+  // 2. Update customer status -> deal
+  const { data: updatedCust, error: cErr } = await supabase.from("customers")
+    .update({ status: "deal", last_follow_up_time: new Date().toISOString() })
+    .eq("id", input.customer_id)
+    .select("*").single();
+  if (cErr) return { data: null, error: cErr.message };
+
+  // 3. Update property status -> occupied (rent) or sold (sale)
+  const { data: updatedProp, error: pErr } = await supabase.from("properties")
+    .update({ status: isRent ? "occupied" : "sold" })
+    .eq("id", input.property_id)
+    .select("*").single();
+  if (pErr) return { data: null, error: pErr.message };
+
+  // 4. Create customer_properties relation with deal info
+  const { data: relation, error: rErr } = await supabase.from("customer_properties")
+    .insert({
+      customer_id: input.customer_id,
+      property_id: input.property_id,
+      relation_type: "deal",
+      status: "active",
+      notes: input.notes || null,
+      deal_price: input.deal_price,
+      deal_date: dealDate,
+      commission: input.commission || null,
+    })
+    .select("*").single();
+  if (rErr) {
+    // Relation table may not have deal columns yet, try without them
+    const { data: fallback, error: fErr } = await supabase.from("customer_properties")
+      .insert({
+        customer_id: input.customer_id,
+        property_id: input.property_id,
+        relation_type: "deal",
+        status: "active",
+        notes: (input.notes || "") + " [成交价:" + input.deal_price + " 日期:" + dealDate + (input.commission ? " 佣金:" + input.commission : "") + "]",
+      })
+      .select("*").single();
+    if (fErr) return { data: null, error: fErr.message };
+    return { data: { customer: updatedCust as CustomerWithPropertyCount, property: updatedProp as PropertyWithDetails, relation: fallback as CustomerProperty }, error: null };
+  }
+
+  // 5. Add auto follow-up record
+  await supabase.from("customer_follow_ups").insert({
+    customer_id: input.customer_id,
+    content: "成交! " + (isRent ? "已出租" : "已出售") + " " + (prop.community || prop.name) + ", 成交价:" + input.deal_price,
+    follow_up_type: "other",
+  });
+
+  return { data: { customer: updatedCust as CustomerWithPropertyCount, property: updatedProp as PropertyWithDetails, relation: relation as CustomerProperty }, error: null };
+}
 
 export async function fetchProperties(): Promise<QueryResult<PropertyWithDetails[]>> {
   if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
@@ -464,3 +651,80 @@ export async function setPrimaryImage(propertyId: string, imageId: string): Prom
   if (error) return { data: null, error: error.code === "42P01" ? "TABLES_NOT_FOUND" : error.message };
   return { data: null, error: null };
 }
+export async function fetchDashboardStats(): Promise<QueryResult<DashboardStats>> {
+  if (!isSupabaseConfigured()) return { data: null, error: "SUPABASE_NOT_CONFIGURED" };
+  const supabase = await getServerClient();
+
+  const { count: customerCount, error: cErr } = await supabase.from("customers").select("*", { count: "exact", head: true });
+  if (cErr) return { data: null, error: cErr.message };
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { count: newCustomersToday } = await supabase.from("customers").select("*", { count: "exact", head: true }).gte("created_at", today);
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+  const { data: staleCustomers } = await supabase.from("customers")
+    .select("id, name, customer_type, last_follow_up_time, status")
+    .or("last_follow_up_time.lt." + sevenDaysAgo + ",last_follow_up_time.is.null")
+    .in("status", ["new", "contacting", "viewing"])
+    .order("last_follow_up_time", { ascending: true, nullsFirst: true })
+    .limit(10);
+
+  const { count: viewingCount } = await supabase.from("customers").select("*", { count: "exact", head: true }).eq("status", "viewing");
+  const { count: dealCount } = await supabase.from("customers").select("*", { count: "exact", head: true }).eq("status", "deal");
+  const todayStart = new Date().toISOString().slice(0, 10) + "T00:00:00Z";
+  const { count: todayViewings } = await supabase.from("customer_follow_ups").select("*", { count: "exact", head: true }).gte("scheduled_at", todayStart).lt("scheduled_at", today + "T23:59:59Z");
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const { count: monthlyDeals } = await supabase.from("customers").select("*", { count: "exact", head: true }).eq("status", "deal").gte("updated_at", monthStart);
+  const { data: monthlyCommissions } = await supabase.from("customer_properties").select("commission").gte("created_at", monthStart).not("commission", "is", null);
+  const monthlyCommission = (monthlyCommissions ?? []).reduce((sum: number, r: { commission: number }) => sum + (r.commission ?? 0), 0);
+
+  const { data: props, error: pErr } = await supabase.from("properties").select("status, rent, rent_price, name, created_at").order("created_at", { ascending: false });
+  if (pErr) return { data: null, error: pErr.code === "42P01" ? "TABLES_NOT_FOUND" : pErr.message };
+
+  const propertyCount = props?.length ?? 0;
+  const occupied = props?.filter((p: { status: string }) => p.status === "occupied").length ?? 0;
+  const vacant = props?.filter((p: { status: string }) => p.status === "vacant").length ?? 0;
+  const occupancyRate = propertyCount > 0 ? Math.round((occupied / propertyCount) * 100) : 0;
+
+  const { data: activeLeases, error: lErr } = await supabase.from("leases").select("monthly_rent, customer_id, property_id, created_at").eq("status", "active");
+  if (lErr) return { data: null, error: lErr.code === "42P01" ? "TABLES_NOT_FOUND" : lErr.message };
+  const totalMonthlyRent = (activeLeases ?? []).reduce((sum: number, l: { monthly_rent: number }) => sum + (l.monthly_rent ?? 0), 0);
+
+  const { data: recentProps } = await supabase.from("properties")
+    .select("id, name, community, area, rent_price, sale_price, listing_type, status")
+    .order("created_at", { ascending: false }).limit(5);
+
+  const recent: { action: string; target: string; time: string }[] = [];
+  const { data: recentCustomers } = await supabase.from("customers").select("name, created_at").order("created_at", { ascending: false }).limit(3);
+  if (recentCustomers) for (const c of recentCustomers as { name: string; created_at: string }[]) recent.push({ action: "新增客户", target: c.name, time: c.created_at });
+  const { data: newProps } = await supabase.from("properties").select("name, created_at").order("created_at", { ascending: false }).limit(3);
+  if (newProps) for (const p of newProps as { name: string; created_at: string }[]) recent.push({ action: "新增房源", target: p.name, time: p.created_at });
+  const { data: recentLeases } = await supabase.from("leases").select("created_at").order("created_at", { ascending: false }).limit(3);
+  if (recentLeases) for (const l of recentLeases as { created_at: string }[]) recent.push({ action: "新签租约", target: "", time: l.created_at });
+  recent.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+  const recentActivity = recent.slice(0, 6).map((r) => ({ ...r, time: formatRelativeTime(r.time) }));
+
+  return {
+    data: {
+      customerCount: customerCount ?? 0,
+      propertyCount,
+      occupiedCount: occupied,
+      vacantCount: vacant,
+      occupancyRate,
+      totalMonthlyRent,
+      newCustomersToday: newCustomersToday ?? 0,
+      pendingFollowUps: (staleCustomers ?? []).length,
+      viewingCount: viewingCount ?? 0,
+      dealCount: dealCount ?? 0,
+      todayViewings: todayViewings ?? 0,
+      monthlyDeals: monthlyDeals ?? 0,
+      monthlyCommission: monthlyCommission ?? 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recentProperties: (recentProps ?? []) as any,
+      recentActivity,
+    },
+    error: null,
+  };
+}
+
+//

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,9 @@ export function CustomersTable({ initialData }: Props) {
   const [editTarget, setEditTarget] = useState<CustomerWithPropertyCount | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
+  const [showBatchConfirm, setShowBatchConfirm] = useState(false);
 
   const filtered = initialData.filter((c) => {
     if (!query.trim()) return true;
@@ -48,6 +52,23 @@ export function CustomersTable({ initialData }: Props) {
       (c.phone && c.phone.includes(q))
     );
   });
+
+  const allSelected = filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id));
+
+  function toggleSelect(id: string) {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  }
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((c) => c.id)));
+    }
+  }
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -66,15 +87,71 @@ export function CustomersTable({ initialData }: Props) {
     router.refresh();
   }
 
+  async function handleBatchDelete() {
+    if (selectedIds.size === 0) return;
+    setBatchDeleting(true);
+    const supabase = createClient();
+    const ids = Array.from(selectedIds);
+    let errorMsg = "";
+
+    // 1. Check for deal records
+    const { data: dealCustomers } = await supabase
+      .from("customer_properties")
+      .select("customer_id")
+      .in("customer_id", ids)
+      .eq("relation_type", "deal");
+
+    if (dealCustomers && dealCustomers.length > 0) {
+      setToast({ type: "error", message: "部分客户已有成交记录，建议修改为关闭状态。已取消批量删除。" });
+      setBatchDeleting(false);
+      return;
+    }
+
+    // 2. Delete follow_ups
+    const { error: fuErr } = await supabase.from("customer_follow_ups").delete().in("customer_id", ids);
+    if (fuErr) { errorMsg = fuErr.message; }
+
+    // 3. Delete customer_properties
+    if (!errorMsg) {
+      const { error: cpErr } = await supabase.from("customer_properties").delete().in("customer_id", ids);
+      if (cpErr) { errorMsg = cpErr.message; }
+    }
+
+    // 4. Delete customers
+    if (!errorMsg) {
+      const { error: cErr } = await supabase.from("customers").delete().in("id", ids);
+      if (cErr) { errorMsg = cErr.message; }
+    }
+
+    setBatchDeleting(false);
+    setShowBatchConfirm(false);
+    setSelectedIds(new Set());
+
+    if (errorMsg) {
+      setToast({ type: "error", message: "批量删除失败：" + errorMsg });
+    } else {
+      setToast({ type: "success", message: "已删除 " + ids.length + " 个客户" });
+    }
+    router.refresh();
+  }
+
   return (
     <>
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle>全部客户</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-              <Input placeholder="搜索客户..." className="pl-8 h-9" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <div className="flex items-center gap-2">
+              {selectedIds.size > 0 && (
+                <Button variant="destructive" size="sm" onClick={() => setShowBatchConfirm(true)} disabled={batchDeleting}>
+                  {batchDeleting && <Loader2 className="size-4 animate-spin mr-1" />}
+                  删除选中 ({selectedIds.size})
+                </Button>
+              )}
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                <Input placeholder="搜索客户..." className="pl-8 h-9" value={query} onChange={(e) => setQuery(e.target.value)} />
+              </div>
             </div>
           </div>
           <CardDescription>数据库中所有客户列表</CardDescription>
@@ -98,6 +175,14 @@ export function CustomersTable({ initialData }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      className="size-4 rounded border-gray-300 cursor-pointer"
+                    />
+                  </TableHead>
                   <TableHead>姓名</TableHead>
                   <TableHead>状态</TableHead>
                   <TableHead>关联房源</TableHead>
@@ -111,12 +196,20 @@ export function CustomersTable({ initialData }: Props) {
                   return (
                     <TableRow key={customer.id}>
                       <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(customer.id)}
+                          onChange={() => toggleSelect(customer.id)}
+                          className="size-4 rounded border-gray-300 cursor-pointer"
+                        />
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="size-8">
                             <AvatarFallback>{getInitials(customer.name)}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{customer.name}</div>
+                            <Link href={`/customers/${customer.id}`} className="font-medium hover:underline">{customer.name}</Link>
                             <div className="text-xs text-muted-foreground">{customer.email}</div>
                           </div>
                         </div>
@@ -148,7 +241,7 @@ export function CustomersTable({ initialData }: Props) {
         <CustomerForm
           mode="edit"
           customerId={editTarget.id}
-          initialData={{ name: editTarget.name, email: editTarget.email ?? "", phone: editTarget.phone ?? "", wechat: editTarget.wechat ?? "", id_card: editTarget.id_card ?? "", notes: editTarget.notes ?? "" }}
+          initialData={{ name: editTarget.name, email: editTarget.email ?? "", phone: editTarget.phone ?? "", wechat: editTarget.wechat ?? "", id_card: editTarget.id_card ?? "", customer_type: editTarget.customer_type ?? "", budget_min: editTarget.budget_min != null ? String(editTarget.budget_min) : "", budget_max: editTarget.budget_max != null ? String(editTarget.budget_max) : "", target_city: editTarget.target_city ?? "", target_district: editTarget.target_district ?? "", target_community: editTarget.target_community ?? "", property_type_pref: editTarget.property_type_pref ?? "", bedrooms_pref: editTarget.bedrooms_pref != null ? String(editTarget.bedrooms_pref) : "", area_min: editTarget.area_min != null ? String(editTarget.area_min) : "", area_max: editTarget.area_max != null ? String(editTarget.area_max) : "", source: editTarget.source ?? "", manager: editTarget.manager ?? "", status: editTarget.status ?? "new", notes: editTarget.notes ?? "" }}
           trigger={<span />}
           onSuccess={() => { setEditTarget(null); setToast({ type: "success", message: "已更新客户「" + editTarget.name + "」" }); }}
         />
@@ -170,6 +263,30 @@ export function CustomersTable({ initialData }: Props) {
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                   {deleting && <Loader2 className="size-4 animate-spin" />}
                   删除
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Batch Delete Confirm Dialog */}
+      {showBatchConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/40" />
+          <Card className="relative z-10 w-full max-w-sm shadow-xl">
+            <CardHeader>
+              <CardTitle>批量删除确认</CardTitle>
+              <CardDescription>该操作不可撤销</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm">确定要删除选中的 <strong>{selectedIds.size}</strong> 个客户吗？</p>
+              <p className="text-xs text-muted-foreground">将同时删除关联的跟进记录和客户-房源关联。</p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowBatchConfirm(false)}>取消</Button>
+                <Button variant="destructive" onClick={handleBatchDelete} disabled={batchDeleting}>
+                  {batchDeleting && <Loader2 className="size-4 animate-spin" />}
+                  确认删除
                 </Button>
               </div>
             </CardContent>

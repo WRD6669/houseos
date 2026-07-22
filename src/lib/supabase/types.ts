@@ -6,7 +6,20 @@ export interface Customer {
   wechat: string | null;
   id_card: string | null;
   notes: string | null;
-  status: "active" | "inactive" | "pending";
+  status: "active" | "inactive" | "pending" | "new" | "contacting" | "viewing" | "deal" | "closed";
+  customer_type: "buyer" | "renter" | "both" | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  target_city: string | null;
+  target_district: string | null;
+  target_community: string | null;
+  property_type_pref: string | null;
+  bedrooms_pref: number | null;
+  area_min: number | null;
+  area_max: number | null;
+  source: string | null;
+  manager: string | null;
+  last_follow_up_time: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -19,7 +32,8 @@ export interface Property {
   listing_type: "rent" | "sale";
   /** @deprecated Use rent_price instead */
   /** @deprecated */
-  rent: number;
+  /** @deprecated Use rent_price instead */
+  rent: number | null;
   rent_price: number | null;
   sale_price: number | null;
   city: string;
@@ -96,6 +110,63 @@ export interface Lease {
   updated_at: string;
 }
 
+
+// Customer with full details (for detail page)
+export interface CustomerWithDetails {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  wechat: string | null;
+  id_card: string | null;
+  notes: string | null;
+  status: string;
+  customer_type: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  target_city: string | null;
+  target_district: string | null;
+  target_community: string | null;
+  property_type_pref: string | null;
+  bedrooms_pref: number | null;
+  area_min: number | null;
+  area_max: number | null;
+  source: string | null;
+  manager: string | null;
+  last_follow_up_time: string | null;
+  property_count: number;
+  created_at: string;
+  matched_properties?: PropertyWithDetails[];
+  follow_ups?: CustomerFollowUp[];
+}
+
+// Customer-Property junction
+export interface CustomerProperty {
+  id: string;
+  customer_id: string;
+  property_id: string;
+  relation_type: "recommend" | "viewed" | "favorite" | "deal";
+  status: string;
+  notes: string | null;
+  deal_price?: number | null;
+  deal_date?: string | null;
+  commission?: number | null;
+  created_at: string;
+}
+
+// Customer follow-up record
+export interface CustomerFollowUp {
+  id: string;
+  customer_id: string;
+  content: string;
+  follow_up_type: "call" | "wechat" | "visit" | "message" | "other";
+  manager: string | null;
+  scheduled_at?: string | null;
+  result?: "pending" | "satisfied" | "thinking" | "rejected" | "deal" | null;
+  property_id?: string | null;
+  created_at: string;
+}
+
 // Customer with property count (returned by data layer)
 export interface CustomerWithPropertyCount {
   id: string;
@@ -106,6 +177,19 @@ export interface CustomerWithPropertyCount {
   id_card: string | null;
   notes: string | null;
   status: string;
+  customer_type: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  target_city: string | null;
+  target_district: string | null;
+  target_community: string | null;
+  property_type_pref: string | null;
+  bedrooms_pref: number | null;
+  area_min: number | null;
+  area_max: number | null;
+  source: string | null;
+  manager: string | null;
+  last_follow_up_time: string | null;
   property_count: number;
   created_at: string;
 }

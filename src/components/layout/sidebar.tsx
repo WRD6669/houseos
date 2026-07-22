@@ -23,7 +23,7 @@ export function Sidebar() {
         <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
           <Home className="size-4 text-primary-foreground" />
         </div>
-        <span className="text-lg font-semibold tracking-tight">HouseOS</span>
+        <div><span className="text-lg font-semibold tracking-tight">HouseOS</span><span className="ml-2 text-xs text-muted-foreground">智能房产管理</span></div>
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {
